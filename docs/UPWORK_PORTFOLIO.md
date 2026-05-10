@@ -2,6 +2,9 @@
 
 Use this file when you add AutoFlow to your **Upwork project catalog**, attach it as a **portfolio sample**, or paste pieces into **proposals**. Replace bracketed placeholders with your own details.
 
+**Portfolio screenshot (upload this on Upwork):** [images/upwork-dashboard.png](images/upwork-dashboard.png)  
+Captured at 1600×1000 full page from the Next.js Control Center. If the API was not running on `localhost:8000`, the sidebar may show empty health and a “Failed to fetch” strip—re-run after `docker compose up redis postgres -d` and `uvicorn app.main:app` for a populated shot (same command below).
+
 ---
 
 ## One-line catalog title (pick one)

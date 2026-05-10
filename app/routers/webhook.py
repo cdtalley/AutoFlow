@@ -1,5 +1,3 @@
-import asyncio
-import logging
 from datetime import datetime
 from uuid import uuid4
 
@@ -12,10 +10,11 @@ from app.db.database import get_db, save_run
 from app.limiter import limiter
 from app.models.schemas import InquiryRequest, WebhookResponse
 from app.routers.auth_deps import require_webhook_api_key
+from app.routers.webhook_helpers import replay_webhook_response
 from app.runtime import get_graph, get_redis_memory, get_websocket_manager
+from app.services.graph_execution import process_inquiry_run
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 _WEBHOOK_RL = get_settings().WEBHOOK_RATE_LIMIT
 
@@ -51,23 +50,11 @@ async def webhook(
     if idem:
         existing = redis_memory.get_idempotent_run_id(idem)
         if existing:
-            return WebhookResponse(
-                run_id=existing,
-                status="running",
-                message="Same Idempotency-Key: returning existing run (no duplicate work enqueued).",
-                poll_url=f"/api/v1/status/{existing}",
-                idempotent_replay=True,
-            )
+            return replay_webhook_response(redis_memory, existing)
         run_id = str(uuid4())
         if not redis_memory.claim_idempotent_run_id(idem, run_id, settings.IDEMPOTENCY_TTL_SECONDS):
             winner = redis_memory.get_idempotent_run_id(idem) or run_id
-            return WebhookResponse(
-                run_id=winner,
-                status="running",
-                message="Same Idempotency-Key: returning existing run (no duplicate work enqueued).",
-                poll_url=f"/api/v1/status/{winner}",
-                idempotent_replay=True,
-            )
+            return replay_webhook_response(redis_memory, winner)
     else:
         run_id = str(uuid4())
 
@@ -98,28 +85,15 @@ async def webhook(
     redis_memory.set_run_state(run_id, initial_state)
     await save_run(db, initial_state, body.subject)
 
-    async def run_graph_background(run_id_value: str, initial_state_value: dict, subject: str):
-        from app.db.database import async_session_factory
-
-        db_session = async_session_factory()
-        try:
-            config = {"configurable": {"thread_id": run_id_value}}
-            final_state = await asyncio.to_thread(graph.invoke, initial_state_value, config)
-            await save_run(db_session, final_state, subject)
-            redis_memory.set_run_state(run_id_value, dict(final_state))
-            for step in final_state.get("agent_steps", []):
-                redis_memory.append_step(run_id_value, step)
-            await ws_manager.broadcast_to_run(run_id_value, {"type": "completed", "state": dict(final_state)})
-        except Exception as exc:
-            logger.exception("Graph run failed run_id=%s", run_id_value)
-            error_state = {**initial_state_value, "status": "error", "error": str(exc)}
-            redis_memory.set_run_state(run_id_value, error_state)
-            await save_run(db_session, error_state, subject)
-            await ws_manager.broadcast_to_run(run_id_value, {"type": "error", "error": str(exc)})
-        finally:
-            await db_session.close()
-
-    background_tasks.add_task(run_graph_background, run_id, initial_state, body.subject)
+    background_tasks.add_task(
+        process_inquiry_run,
+        run_id,
+        initial_state,
+        body.subject,
+        graph=graph,
+        redis_memory=redis_memory,
+        ws_manager=ws_manager,
+    )
 
     return WebhookResponse(
         run_id=run_id,
