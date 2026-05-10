@@ -5,16 +5,18 @@ import { useSiteConfig } from "@/app/providers";
 import { AppShell } from "@/components/dashboard/AppShell";
 import { LiveRunsPanel } from "@/components/dashboard/LiveRunsPanel";
 import { MetricsSidebar } from "@/components/dashboard/MetricsSidebar";
+import { OverviewPanel } from "@/components/dashboard/OverviewPanel";
 import { RunHistoryPanel } from "@/components/dashboard/RunHistoryPanel";
 import { SubmitInquiryPanel, type InquiryFormState } from "@/components/dashboard/SubmitInquiryPanel";
 import { TabButton } from "@/components/dashboard/FormControls";
 import { useLiveRun } from "@/hooks/useLiveRun";
 import { useSidebarData } from "@/hooks/useSidebarData";
 import { createInquiry, getRunDetails } from "@/lib/api";
+import { PORTFOLIO_DEMO_INQUIRY } from "@/lib/demoPayload";
 import { humanizeApiError } from "@/lib/http";
 import type { RunStatus, RunStatusValue } from "@/lib/types";
 
-type Tab = "submit" | "live" | "history";
+type Tab = "overview" | "submit" | "live" | "history";
 
 export default function HomePage() {
   const cfg = useSiteConfig();
@@ -24,6 +26,7 @@ export default function HomePage() {
   const [selectedRun, setSelectedRun] = useState<RunStatus | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [refreshBusy, setRefreshBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
   const [form, setForm] = useState<InquiryFormState>({
     sender_name: "",
     sender_email: "",
@@ -49,6 +52,22 @@ export default function HomePage() {
     }
   };
 
+  const runFullDemo = async () => {
+    setDemoBusy(true);
+    setFormError(null);
+    try {
+      const response = await createInquiry(PORTFOLIO_DEMO_INQUIRY);
+      setWatchRunId(response.run_id);
+      setActiveTab("live");
+      await reload();
+      await refresh(response.run_id);
+    } catch (e) {
+      setFormError(humanizeApiError(e));
+    } finally {
+      setDemoBusy(false);
+    }
+  };
+
   const submitInquiry = async () => {
     setFormError(null);
     try {
@@ -64,6 +83,7 @@ export default function HomePage() {
       setActiveTab("live");
       setFormError(null);
       await reload();
+      await refresh(response.run_id);
     } catch (e) {
       setFormError(humanizeApiError(e));
     }
@@ -101,6 +121,9 @@ export default function HomePage() {
             </div>
           )}
           <nav className="panel flex flex-wrap gap-1 p-1.5 sm:inline-flex sm:rounded-2xl">
+            <TabButton active={activeTab === "overview"} onClick={() => setActiveTab("overview")}>
+              Start here
+            </TabButton>
             <TabButton active={activeTab === "submit"} onClick={() => setActiveTab("submit")}>
               Submit
             </TabButton>
@@ -111,6 +134,19 @@ export default function HomePage() {
               History
             </TabButton>
           </nav>
+
+          {activeTab === "overview" && (
+            <OverviewPanel
+              health={health}
+              loadError={loadError}
+              isHydrating={isHydrating}
+              runsCount={runs.length}
+              onRunFullDemo={runFullDemo}
+              demoBusy={demoBusy}
+              onGoSubmit={() => setActiveTab("submit")}
+              onGoHistory={() => setActiveTab("history")}
+            />
+          )}
 
           {activeTab === "submit" && (
             <SubmitInquiryPanel form={form} setForm={setForm} onSubmit={() => void submitInquiry()} />
@@ -133,6 +169,9 @@ export default function HomePage() {
               setHistoryFilter={setHistoryFilter}
               selectedRun={selectedRun}
               onSelectRun={(id) => void loadRunDetails(id)}
+              onRunDemo={runFullDemo}
+              demoBusy={demoBusy}
+              totalRunCount={runs.length}
             />
           )}
         </section>

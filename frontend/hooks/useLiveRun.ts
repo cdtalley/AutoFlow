@@ -14,12 +14,16 @@ export function useLiveRun(watchRunId: string, pollMs = 2000) {
   const [liveRun, setLiveRun] = useState<RunStatus | null>(null);
   const [liveSteps, setLiveSteps] = useState<AgentStep[]>([]);
 
-  const refresh = useCallback(async () => {
-    if (!watchRunId.trim()) return;
-    const data = await getRun(watchRunId.trim());
-    setLiveRun(data);
-    setLiveSteps(data.agent_steps ?? []);
-  }, [watchRunId]);
+  const refresh = useCallback(
+    async (runIdOverride?: string) => {
+      const id = (runIdOverride ?? watchRunId).trim();
+      if (!id) return;
+      const data = await getRun(id);
+      setLiveRun(data);
+      setLiveSteps(data.agent_steps ?? []);
+    },
+    [watchRunId],
+  );
 
   useEffect(() => {
     if (!watchRunId.trim()) return;

@@ -5,7 +5,7 @@
 
 export type AccentId = "sky" | "violet" | "teal" | "amber";
 
-export type DefaultTab = "submit" | "live" | "history";
+export type DefaultTab = "overview" | "submit" | "live" | "history";
 
 export type SiteAccent = {
   id: AccentId;
@@ -73,9 +73,9 @@ function parseAccent(raw: string | undefined): AccentId {
 }
 
 function parseDefaultTab(raw: string | undefined): DefaultTab {
-  const v = (raw || "submit").toLowerCase();
-  if (v === "live" || v === "history" || v === "submit") return v;
-  return "submit";
+  const v = (raw || "overview").toLowerCase();
+  if (v === "live" || v === "history" || v === "submit" || v === "overview") return v;
+  return "overview";
 }
 
 function parseBool(raw: string | undefined, defaultTrue: boolean): boolean {
@@ -98,13 +98,17 @@ export type SiteConfig = {
   showFooterAttribution: boolean;
   supportUrl: string | null;
   docsUrl: string | null;
+  /** GitHub or internal repo — “View source” on Overview */
+  repoUrl: string | null;
 };
 
 export function buildSiteConfig(): SiteConfig {
   const accentId = parseAccent(readEnv("NEXT_PUBLIC_UI_ACCENT"));
   return {
     appName: readEnv("NEXT_PUBLIC_APP_NAME") ?? "AutoFlow",
-    tagline: readEnv("NEXT_PUBLIC_APP_TAGLINE") ?? "Multi-agent inquiry automation — classify, route, respond, escalate.",
+    tagline:
+      readEnv("NEXT_PUBLIC_APP_TAGLINE") ??
+      "Webhook → LangGraph (FAQ · sales · support) → local Ollama. Postgres for audit history, Redis for live state — production-shaped, not a notebook.",
     controlCenterLabel: readEnv("NEXT_PUBLIC_CONTROL_CENTER_LABEL") ?? "Control Center",
     environmentLabel: readEnv("NEXT_PUBLIC_ENVIRONMENT_LABEL") ?? "Demo",
     accent: ACCENTS[accentId],
@@ -114,5 +118,6 @@ export function buildSiteConfig(): SiteConfig {
     showFooterAttribution: parseBool(readEnv("NEXT_PUBLIC_SHOW_FOOTER_ATTRIBUTION"), true),
     supportUrl: readEnv("NEXT_PUBLIC_SUPPORT_URL") ?? null,
     docsUrl: readEnv("NEXT_PUBLIC_DOCS_URL") ?? null,
+    repoUrl: readEnv("NEXT_PUBLIC_REPO_URL") ?? null,
   };
 }

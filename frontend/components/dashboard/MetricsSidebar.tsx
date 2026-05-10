@@ -149,7 +149,7 @@ export function MetricsSidebar({
 
       <div className="panel-inset flex min-h-[200px] flex-1 flex-col p-3">
         <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Run mix</p>
-        <div className="min-h-[160px] flex-1">
+        <div className="relative min-h-[160px] flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 4, right: 4, left: -18, bottom: 0 }}>
               <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -165,6 +165,11 @@ export function MetricsSidebar({
               <Bar dataKey="value" fill={cfg.accent.chartFill} radius={[8, 8, 0, 0]} maxBarSize={36} />
             </BarChart>
           </ResponsiveContainer>
+          {stats.total === 0 && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-slate-950/55 px-4 text-center text-[11px] leading-relaxed text-slate-500">
+              Chart fills after your first inquiries — try <span className="text-slate-400">Start here → Run full demo</span>.
+            </div>
+          )}
         </div>
       </div>
     </aside>

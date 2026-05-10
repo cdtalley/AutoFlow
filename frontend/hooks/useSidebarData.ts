@@ -10,13 +10,23 @@ export function useSidebarData(pollMs = 8000) {
   const [isHydrating, setIsHydrating] = useState(true);
 
   const reload = useCallback(async () => {
+    setLoadError(null);
     try {
-      setLoadError(null);
       const [h, r] = await Promise.all([getHealth(), getRuns()]);
       setHealth(h);
       setRuns(r);
     } catch (e) {
       setLoadError(humanizeApiError(e));
+      try {
+        setHealth(await getHealth());
+      } catch {
+        setHealth(null);
+      }
+      try {
+        setRuns(await getRuns());
+      } catch {
+        setRuns([]);
+      }
     } finally {
       setIsHydrating(false);
     }

@@ -24,7 +24,16 @@ export function LiveRunsPanel({
     <div className="panel space-y-6 p-6 sm:p-8">
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-white">Live run</h2>
-        <p className="mt-1 text-sm text-slate-500">Poll latest status and steps. Paste a <code className="font-mono text-slate-400">run_id</code> from history or after submit.</p>
+        <p className="mt-1 text-sm text-slate-500">
+          Polls <code className="font-mono text-slate-400">/status</code> (and opens WS when configured). Use{" "}
+          <strong className="text-slate-400">Start here → Run full demo</strong> to auto-fill a <code className="font-mono text-slate-400">run_id</code>
+          , or paste one from History.
+        </p>
+        {!watchRunId.trim() && (
+          <p className="mt-2 rounded-xl border border-amber-500/20 bg-amber-950/20 px-3 py-2 text-xs text-amber-100/90">
+            No run selected — switch to <strong className="text-amber-50">Start here</strong> and launch the demo, or paste a run id above.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">

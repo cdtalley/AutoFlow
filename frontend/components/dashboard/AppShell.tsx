@@ -28,7 +28,11 @@ export function AppShell({
         aria-hidden
       />
 
-      <header className="relative border-b border-white/5 bg-slate-950/40 backdrop-blur-xl">
+      <header className="relative border-b border-white/5 bg-slate-950/50 backdrop-blur-2xl">
+        <div
+          className="h-[2px] w-full bg-gradient-to-r from-sky-500/50 via-white/30 to-violet-500/50 opacity-90"
+          aria-hidden
+        />
         <div className="mx-auto flex max-w-[1680px] flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div className="flex items-start gap-4">
             <div
@@ -46,6 +50,9 @@ export function AppShell({
                 </span>
               </div>
               <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-400">{cfg.tagline}</p>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-600">
+                Live control surface · portfolio · technical screen ready
+              </p>
               {cfg.showApiEndpointBadge && (
                 <p className="mt-2 font-mono text-[11px] text-slate-500">
                   API <span className="text-slate-400">{api}</span>

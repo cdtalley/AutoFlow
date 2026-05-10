@@ -17,6 +17,11 @@ body {
 }
 
 @layer components {
+  /* Gradient border frame — wrap inner content in rounded-2xl bg-slate-950/90 */
+  .frame-glow {
+    @apply rounded-[1.35rem] bg-gradient-to-br from-white/20 via-white/[0.07] to-transparent p-[1px] shadow-glow-lg;
+  }
+
   .panel {
     @apply rounded-2xl border border-white/[0.06] bg-slate-900/40 shadow-2xl shadow-black/40 backdrop-blur-xl;
   }

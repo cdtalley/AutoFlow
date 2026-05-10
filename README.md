@@ -150,9 +150,9 @@ flowchart TB
 ### 5.4 Control Center (`frontend/`)
 
 - **Shell**: Branded header, gradient hero on submit, glass panels, accent themes, and a **Refresh** control wired to health + runs.
-- **Tabs**: submit (webhook payload), live run (poll + step timeline), history (Postgres-backed table + detail trace).
+- **Tabs**: **Start here** (reviewer overview, architecture, boot commands, one-click demo), submit (webhook payload), live run (poll + step timeline), history (Postgres-backed table + detail trace). Default landing tab is **overview** so the UI is never an empty form on first paint.
 - **API**: `NEXT_PUBLIC_API_BASE` (default `http://localhost:8000`); optional `NEXT_PUBLIC_WEBHOOK_API_KEY` when the API enforces `X-API-Key` / WS token parity.
-- **White-label / demo**: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_TAGLINE`, `NEXT_PUBLIC_CONTROL_CENTER_LABEL`, `NEXT_PUBLIC_ENVIRONMENT_LABEL`, `NEXT_PUBLIC_UI_ACCENT` (`sky` \| `violet` \| `teal` \| `amber`), `NEXT_PUBLIC_DEFAULT_TAB`, preset chips, footer links — see **`frontend/.env.example`**.
+- **White-label / demo**: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_TAGLINE`, `NEXT_PUBLIC_CONTROL_CENTER_LABEL`, `NEXT_PUBLIC_ENVIRONMENT_LABEL`, `NEXT_PUBLIC_UI_ACCENT` (`sky` \| `violet` \| `teal` \| `amber`), `NEXT_PUBLIC_DEFAULT_TAB` (`overview` \| `submit` \| …), `NEXT_PUBLIC_REPO_URL` (GitHub link on **Start here**), preset chips, footer links — see **`frontend/.env.example`**.
 
 ---
 

@@ -4,6 +4,7 @@ import { ChevronRight, Send, Zap } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useSiteConfig } from "@/app/providers";
 import { Input, TextArea } from "@/components/dashboard/FormControls";
+import { PORTFOLIO_DEMO_INQUIRY } from "@/lib/demoPayload";
 
 export type InquiryFormState = {
   sender_name: string;
@@ -14,6 +15,17 @@ export type InquiryFormState = {
 };
 
 const PRESETS: { label: string; hint: string; patch: Partial<InquiryFormState> }[] = [
+  {
+    label: "Reviewer demo",
+    hint: "Same as Start here",
+    patch: {
+      sender_name: PORTFOLIO_DEMO_INQUIRY.sender_name,
+      sender_email: PORTFOLIO_DEMO_INQUIRY.sender_email,
+      subject: PORTFOLIO_DEMO_INQUIRY.subject,
+      body: PORTFOLIO_DEMO_INQUIRY.body,
+      metadata: JSON.stringify(PORTFOLIO_DEMO_INQUIRY.metadata, null, 2),
+    },
+  },
   {
     label: "Enterprise",
     hint: "SOC2 + pricing",

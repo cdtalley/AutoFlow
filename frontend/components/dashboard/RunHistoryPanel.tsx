@@ -1,8 +1,9 @@
 "use client";
 
 import clsx from "clsx";
-import { Inbox } from "lucide-react";
+import { Inbox, Loader2, Play } from "lucide-react";
 import type { RunListItem, RunStatus, RunStatusValue } from "@/lib/types";
+import { useSiteConfig } from "@/app/providers";
 import { agentColor, statusColor } from "@/components/dashboard/constants";
 
 const FILTERS: { id: "all" | RunStatusValue; label: string }[] = [
@@ -19,13 +20,21 @@ export function RunHistoryPanel({
   setHistoryFilter,
   selectedRun,
   onSelectRun,
+  onRunDemo,
+  demoBusy,
+  totalRunCount,
 }: {
   filteredRuns: RunListItem[];
   historyFilter: "all" | RunStatusValue;
   setHistoryFilter: (f: "all" | RunStatusValue) => void;
   selectedRun: RunStatus | null;
   onSelectRun: (runId: string) => void;
+  onRunDemo?: () => void | Promise<void>;
+  demoBusy?: boolean;
+  /** Total runs (unfiltered) — for smarter empty states */
+  totalRunCount: number;
 }) {
+  const cfg = useSiteConfig();
   return (
     <div className="panel space-y-6 p-6 sm:p-8">
       <div>
@@ -52,10 +61,40 @@ export function RunHistoryPanel({
       </div>
 
       {filteredRuns.length === 0 ? (
-        <div className="panel-inset flex flex-col items-center justify-center gap-3 py-16 text-center">
+        <div className="panel-inset flex flex-col items-center justify-center gap-4 py-16 text-center">
           <Inbox className="h-10 w-10 text-slate-600" strokeWidth={1.25} />
-          <p className="text-sm font-medium text-slate-400">No runs match this filter</p>
-          <p className="max-w-sm text-xs text-slate-600">Submit an inquiry or widen the filter to see orchestration history.</p>
+          <p className="text-sm font-medium text-slate-400">
+            {totalRunCount > 0 && historyFilter !== "all"
+              ? "No runs for this filter"
+              : totalRunCount === 0
+                ? "No runs yet"
+                : "No runs match this filter"}
+          </p>
+          <p className="max-w-md text-xs leading-relaxed text-slate-600">
+            {totalRunCount > 0 && historyFilter !== "all" ? (
+              <>Switch to <strong className="text-slate-500">All</strong> to see {totalRunCount} run(s) in the database.</>
+            ) : (
+              <>
+                History reads from Postgres. Use <strong className="text-slate-500">Start here → Run full demo</strong> for a realistic enterprise
+                inquiry, then return to this tab.
+              </>
+            )}
+          </p>
+          {onRunDemo && totalRunCount === 0 && (
+            <button
+              type="button"
+              disabled={demoBusy}
+              onClick={() => void onRunDemo()}
+              className={clsx(
+                "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-slate-950 shadow-md transition",
+                cfg.accent.primary,
+                demoBusy && "cursor-wait opacity-70",
+              )}
+            >
+              {demoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
+              Run demo inquiry
+            </button>
+          )}
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-white/8">
