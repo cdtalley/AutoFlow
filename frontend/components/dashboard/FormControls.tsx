@@ -20,15 +20,19 @@ export function TabButton({
   active,
   onClick,
   children,
+  testId,
 }: {
   active: boolean;
   onClick: () => void;
   children: ReactNode;
+  /** For Playwright / portfolio capture (`?tab=` deep links). */
+  testId?: string;
 }) {
   const { accent } = useSiteConfig();
   return (
     <button
       type="button"
+      data-testid={testId}
       onClick={onClick}
       className={clsx(
         "relative rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2",

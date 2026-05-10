@@ -3,16 +3,20 @@
 import clsx from "clsx";
 import { Radio, RefreshCw } from "lucide-react";
 import type { AgentStep, RunStatus, RunStatusValue } from "@/lib/types";
+import { formatAgentStepOutputForPortfolio, formatFinalResponseForPortfolio } from "@/lib/portfolioCapture";
 import { useSiteConfig } from "@/app/providers";
 import { agentColor, statusColor } from "@/components/dashboard/constants";
 
 export function LiveRunsPanel({
+  portfolioThumb = false,
   watchRunId,
   setWatchRunId,
   liveRun,
   liveSteps,
   onConnect,
 }: {
+  /** Set from server `?capture=thumb` — readable portfolio thumbnails only. */
+  portfolioThumb?: boolean;
   watchRunId: string;
   setWatchRunId: (v: string) => void;
   liveRun: RunStatus | null;
@@ -20,22 +24,35 @@ export function LiveRunsPanel({
   onConnect: () => void | Promise<void>;
 }) {
   const cfg = useSiteConfig();
+  const thumbMode = portfolioThumb;
+
   return (
-    <div className="panel space-y-6 p-6 sm:p-8">
+    <div
+      className="panel space-y-6 p-6 sm:p-8"
+      data-testid="live-run-panel"
+      data-thumb={thumbMode ? "1" : "0"}
+    >
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-white">Live run</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Polls <code className="font-mono text-slate-400">/status</code> (and opens WS when configured). Use{" "}
-          <strong className="text-slate-400">Start here → Run full demo</strong> to auto-fill a <code className="font-mono text-slate-400">run_id</code>
-          , or paste one from History.
-        </p>
-        {!watchRunId.trim() && (
+        {thumbMode ? (
+          <p className="mt-1 text-sm text-slate-400">
+            Live orchestration · status polling · multi-agent steps (portfolio view)
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-slate-500">
+            Polls <code className="font-mono text-slate-400">/status</code> (and opens WS when configured). Use{" "}
+            <strong className="text-slate-400">Start here → Run full demo</strong> to auto-fill a{" "}
+            <code className="font-mono text-slate-400">run_id</code>, or paste one from History.
+          </p>
+        )}
+        {!thumbMode && !watchRunId.trim() && (
           <p className="mt-2 rounded-xl border border-amber-500/20 bg-amber-950/20 px-3 py-2 text-xs text-amber-100/90">
             No run selected — switch to <strong className="text-amber-50">Start here</strong> and launch the demo, or paste a run id above.
           </p>
         )}
       </div>
 
+      {!thumbMode && (
       <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
         <input
           value={watchRunId}
@@ -43,6 +60,7 @@ export function LiveRunsPanel({
           className="input-field min-w-0 flex-1 font-mono text-xs sm:text-sm"
           placeholder="e.g. 8f3c2b1a-…"
           aria-label="Run ID to watch"
+          data-testid="live-run-id-input"
         />
         <button
           type="button"
@@ -57,6 +75,7 @@ export function LiveRunsPanel({
           Refresh
         </button>
       </div>
+      )}
 
       {liveRun && (
         <div className="flex flex-wrap items-center gap-3">
@@ -81,7 +100,7 @@ export function LiveRunsPanel({
           <div className="panel-inset py-12 text-center text-sm text-slate-500">No steps loaded yet — enter a run id and refresh.</div>
         ) : (
           liveSteps.map((step, idx) => (
-            <div key={`${step.timestamp}-${idx}`} className="relative flex gap-4 pb-8 last:pb-0">
+            <div key={`${step.timestamp}-${idx}`} className="relative flex gap-4 pb-8 last:pb-0" data-testid="agent-step">
               {idx < liveSteps.length - 1 && (
                 <span
                   className="absolute left-[11px] top-8 h-[calc(100%-0.5rem)] w-px bg-gradient-to-b from-white/20 to-transparent"
@@ -93,7 +112,14 @@ export function LiveRunsPanel({
                 <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">{step.timestamp}</p>
                 <p className={clsx("mt-1 text-sm font-semibold", agentColor[step.agent] ?? "text-slate-200")}>{step.agent}</p>
                 <p className="mt-1 text-xs font-medium text-slate-400">{step.action}</p>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{step.output}</p>
+                <p
+                  className={clsx(
+                    "mt-2 text-sm leading-relaxed text-slate-200",
+                    thumbMode ? "line-clamp-5 whitespace-normal" : "whitespace-pre-wrap",
+                  )}
+                >
+                  {thumbMode ? formatAgentStepOutputForPortfolio(step) : step.output}
+                </p>
               </div>
             </div>
           ))
@@ -103,7 +129,14 @@ export function LiveRunsPanel({
       {liveRun?.final_response && (
         <div className="rounded-2xl border border-emerald-500/25 bg-emerald-950/30 p-5 shadow-inner">
           <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-300/90">Final response</h3>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-emerald-50/95">{liveRun.final_response}</p>
+          <p
+            className={clsx(
+              "mt-3 text-sm leading-relaxed text-emerald-50/95",
+              thumbMode ? "line-clamp-6 whitespace-normal" : "whitespace-pre-wrap",
+            )}
+          >
+            {thumbMode ? formatFinalResponseForPortfolio(liveRun.final_response) : liveRun.final_response}
+          </p>
         </div>
       )}
     </div>

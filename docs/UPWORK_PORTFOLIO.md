@@ -2,8 +2,11 @@
 
 Use this file when you add AutoFlow to your **Upwork project catalog**, attach it as a **portfolio sample**, or paste pieces into **proposals**. Replace bracketed placeholders with your own details.
 
-**Portfolio screenshot (upload this on Upwork):** [images/upwork-dashboard.png](images/upwork-dashboard.png)  
-Captured at 1600×1000 full page from the Next.js Control Center. With the API offline, the UI shows a **“Backend not connected”** panel and copy-paste hints (no raw `Failed to fetch` / `null` JSON). For a **live-data** shot: `docker compose up redis postgres -d`, `uvicorn app.main:app --reload`, `python scripts/seed_portfolio_screenshot.py` (creates eight sample inquiries), start the frontend on port 3000, then from `frontend/` run `npm run screenshot:upwork` (Playwright overwrites this PNG). Postgres is mapped to host **5433** so it does not collide with a local server on 5432.
+**Portfolio images (Upwork):**  
+- **Catalog / thumbnail (upload this):** [images/upwork-thumbnail.png](images/upwork-thumbnail.png) — **exactly 1000×750** (4:3), generated from the dedicated canvas at **`/portfolio/upwork?run=<id>`** (buyer hook + live agent trace + stack strip — not the “Start here” overview).  
+- **Full proof (optional attachment):** [images/upwork-dashboard.png](images/upwork-dashboard.png) — full operator UI.
+
+**Recommended capture:** bring up **Redis, Postgres, API, Ollama,** and **`npm run dev`**, then from `frontend/` run `npm run screenshot:upwork`. The script **POSTs the demo webhook**, waits for graph steps, saves the **full dashboard** PNG, then opens **`/portfolio/upwork?run=…`** at **1000×750** for **`upwork-thumbnail.png`**. Set `PLAYWRIGHT_WEBHOOK_API_KEY` if the API requires it. Manual preview: open `http://localhost:3000/portfolio/upwork?run=<any-run-uuid>`. Optional seed: `python scripts/seed_portfolio_screenshot.py`. Postgres in compose is often on host **5433**.
 
 ---
 

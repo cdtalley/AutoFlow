@@ -45,6 +45,7 @@ export function useLiveRun(watchRunId: string, pollMs = 2000) {
 
   useEffect(() => {
     if (!watchRunId.trim()) return;
+    void refresh();
     const id = setInterval(() => {
       void (async () => {
         try {

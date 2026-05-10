@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "screenshot:upwork": "npx --yes playwright@1.49.1 screenshot http://localhost:3000 ../docs/images/upwork-dashboard.png \"--viewport-size=1600,1000\" --full-page \"--wait-for-timeout=12000\""
+    "screenshot:upwork": "node scripts/capture-upwork-dashboard.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -26,6 +26,7 @@
     "eslint-config-next": "^14.2.5",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.7",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "playwright": "1.49.1"
   }
 }

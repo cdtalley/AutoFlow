@@ -36,7 +36,7 @@ export function RunHistoryPanel({
 }) {
   const cfg = useSiteConfig();
   return (
-    <div className="panel space-y-6 p-6 sm:p-8">
+    <div className="panel space-y-6 p-6 sm:p-8" data-testid="run-history-panel">
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-white">Run history</h2>
         <p className="mt-1 text-sm text-slate-500">Durable records from Postgres. Click a row for agent steps and final output.</p>
@@ -113,6 +113,7 @@ export function RunHistoryPanel({
                 {filteredRuns.map((run) => (
                   <tr
                     key={run.run_id}
+                    data-testid="history-table-row"
                     onClick={() => onSelectRun(run.run_id)}
                     className="cursor-pointer transition hover:bg-white/[0.04]"
                   >
