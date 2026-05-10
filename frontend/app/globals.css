@@ -7,9 +7,25 @@
 }
 
 body {
-  @apply bg-surface text-slate-100 antialiased;
+  @apply text-slate-100 antialiased;
+  background-color: #030712;
+  background-image:
+    radial-gradient(ellipse 110% 70% at 50% -15%, rgba(56, 189, 248, 0.08), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(139, 92, 246, 0.06), transparent 45%),
+    linear-gradient(180deg, #030712 0%, #070d18 55%, #030712 100%);
+  background-attachment: fixed;
 }
 
-.panel {
-  @apply rounded-xl border border-border bg-panel/90 shadow-xl shadow-black/25;
+@layer components {
+  .panel {
+    @apply rounded-2xl border border-white/[0.06] bg-slate-900/40 shadow-2xl shadow-black/40 backdrop-blur-xl;
+  }
+
+  .panel-inset {
+    @apply rounded-xl border border-white/[0.05] bg-slate-950/50 backdrop-blur-sm;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-white/10 bg-slate-950/60 px-3.5 py-2.5 text-sm text-slate-100 shadow-inner transition placeholder:text-slate-600 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-sky-500/30;
+  }
 }

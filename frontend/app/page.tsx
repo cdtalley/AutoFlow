@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSiteConfig } from "@/app/providers";
+import { AppShell } from "@/components/dashboard/AppShell";
 import { LiveRunsPanel } from "@/components/dashboard/LiveRunsPanel";
 import { MetricsSidebar } from "@/components/dashboard/MetricsSidebar";
 import { RunHistoryPanel } from "@/components/dashboard/RunHistoryPanel";
@@ -15,11 +17,13 @@ import type { RunStatus, RunStatusValue } from "@/lib/types";
 type Tab = "submit" | "live" | "history";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<Tab>("submit");
+  const cfg = useSiteConfig();
+  const [activeTab, setActiveTab] = useState<Tab>(cfg.defaultTab);
   const [watchRunId, setWatchRunId] = useState("");
   const [historyFilter, setHistoryFilter] = useState<"all" | RunStatusValue>("all");
   const [selectedRun, setSelectedRun] = useState<RunStatus | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [refreshBusy, setRefreshBusy] = useState(false);
   const [form, setForm] = useState<InquiryFormState>({
     sender_name: "",
     sender_email: "",
@@ -36,6 +40,15 @@ export default function HomePage() {
     [runs, historyFilter],
   );
 
+  const manualReload = async () => {
+    setRefreshBusy(true);
+    try {
+      await reload();
+    } finally {
+      setRefreshBusy(false);
+    }
+  };
+
   const submitInquiry = async () => {
     setFormError(null);
     try {
@@ -49,6 +62,7 @@ export default function HomePage() {
       });
       setWatchRunId(response.run_id);
       setActiveTab("live");
+      setFormError(null);
       await reload();
     } catch (e) {
       setFormError(humanizeApiError(e));
@@ -59,52 +73,70 @@ export default function HomePage() {
     try {
       const detail = await getRunDetails(runId);
       setSelectedRun(detail);
+      setFormError(null);
     } catch (e) {
       setFormError(humanizeApiError(e));
     }
   };
 
   return (
-    <main className="mx-auto grid min-h-screen max-w-[1600px] grid-cols-12 gap-5 p-6">
-      <MetricsSidebar health={health} runs={runs} loadError={loadError} isHydrating={isHydrating} />
+    <AppShell onRefresh={manualReload} isRefreshing={refreshBusy}>
+      <main className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:items-start">
+        <MetricsSidebar health={health} runs={runs} loadError={loadError} isHydrating={isHydrating} />
 
-      <section className="col-span-12 space-y-4 xl:col-span-9">
-        <nav className="panel flex items-center gap-2 p-2">
-          <TabButton active={activeTab === "submit"} onClick={() => setActiveTab("submit")}>
-            Submit Inquiry
-          </TabButton>
-          <TabButton active={activeTab === "live"} onClick={() => setActiveTab("live")}>
-            Live Runs
-          </TabButton>
-          <TabButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
-            Run History
-          </TabButton>
-        </nav>
+        <section className="space-y-5 xl:col-span-9">
+          {formError && (
+            <div
+              role="alert"
+              className="flex items-start justify-between gap-3 rounded-2xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-100"
+            >
+              <span>{formError}</span>
+              <button
+                type="button"
+                onClick={() => setFormError(null)}
+                className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/20"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+          <nav className="panel flex flex-wrap gap-1 p-1.5 sm:inline-flex sm:rounded-2xl">
+            <TabButton active={activeTab === "submit"} onClick={() => setActiveTab("submit")}>
+              Submit
+            </TabButton>
+            <TabButton active={activeTab === "live"} onClick={() => setActiveTab("live")}>
+              Live run
+            </TabButton>
+            <TabButton active={activeTab === "history"} onClick={() => setActiveTab("history")}>
+              History
+            </TabButton>
+          </nav>
 
-        {activeTab === "submit" && (
-          <SubmitInquiryPanel form={form} setForm={setForm} error={formError} onSubmit={() => void submitInquiry()} />
-        )}
+          {activeTab === "submit" && (
+            <SubmitInquiryPanel form={form} setForm={setForm} onSubmit={() => void submitInquiry()} />
+          )}
 
-        {activeTab === "live" && (
-          <LiveRunsPanel
-            watchRunId={watchRunId}
-            setWatchRunId={setWatchRunId}
-            liveRun={liveRun}
-            liveSteps={liveSteps}
-            onConnect={refresh}
-          />
-        )}
+          {activeTab === "live" && (
+            <LiveRunsPanel
+              watchRunId={watchRunId}
+              setWatchRunId={setWatchRunId}
+              liveRun={liveRun}
+              liveSteps={liveSteps}
+              onConnect={refresh}
+            />
+          )}
 
-        {activeTab === "history" && (
-          <RunHistoryPanel
-            filteredRuns={filteredRuns}
-            historyFilter={historyFilter}
-            setHistoryFilter={setHistoryFilter}
-            selectedRun={selectedRun}
-            onSelectRun={(id) => void loadRunDetails(id)}
-          />
-        )}
-      </section>
-    </main>
+          {activeTab === "history" && (
+            <RunHistoryPanel
+              filteredRuns={filteredRuns}
+              historyFilter={historyFilter}
+              setHistoryFilter={setHistoryFilter}
+              selectedRun={selectedRun}
+              onSelectRun={(id) => void loadRunDetails(id)}
+            />
+          )}
+        </section>
+      </main>
+    </AppShell>
   );
 }

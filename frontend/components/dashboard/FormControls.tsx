@@ -1,14 +1,17 @@
+"use client";
+
 import clsx from "clsx";
 import type { ReactNode } from "react";
+import { useSiteConfig } from "@/app/providers";
 
 export function Metric({ title, value, icon }: { title: string; value: number; icon: ReactNode }) {
   return (
-    <div className="rounded-lg border border-border bg-slate-950/60 p-3">
-      <div className="flex items-center justify-between text-slate-400">
-        <p className="text-xs">{title}</p>
-        {icon}
+    <div className="rounded-xl border border-white/10 bg-slate-950/50 p-3.5 shadow-inner transition hover:border-white/15">
+      <div className="flex items-center justify-between text-slate-500">
+        <p className="text-[11px] font-medium uppercase tracking-wide">{title}</p>
+        <span className="text-slate-400">{icon}</span>
       </div>
-      <p className="mt-1 text-xl font-semibold text-slate-100">{value}</p>
+      <p className="mt-1.5 text-2xl font-semibold tracking-tight text-white tabular-nums">{value}</p>
     </div>
   );
 }
@@ -22,13 +25,17 @@ export function TabButton({
   onClick: () => void;
   children: ReactNode;
 }) {
+  const { accent } = useSiteConfig();
   return (
     <button
       type="button"
       onClick={onClick}
       className={clsx(
-        "rounded-lg px-4 py-2 text-sm font-medium transition",
-        active ? "bg-sky-500 text-slate-950" : "text-slate-300 hover:bg-slate-800",
+        "relative rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2",
+        accent.glow,
+        active
+          ? clsx(accent.primary, accent.primaryHover, "text-slate-950 shadow-lg")
+          : "text-slate-400 hover:bg-white/5 hover:text-slate-200",
       )}
     >
       {children}
@@ -45,13 +52,14 @@ export function Input({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const { accent } = useSiteConfig();
   return (
-    <label className="space-y-1">
-      <span className="text-sm text-slate-300">{label}</span>
+    <label className="block space-y-1.5">
+      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-border bg-slate-950/70 px-3 py-2 text-sm"
+        className={clsx("input-field", accent.glow)}
       />
     </label>
   );
@@ -63,19 +71,22 @@ export function TextArea({
   onChange,
   rows = 8,
 }: {
-  label: string;
+  label?: string;
   value: string;
   onChange: (v: string) => void;
   rows?: number;
 }) {
+  const { accent } = useSiteConfig();
   return (
-    <label className="space-y-1">
-      <span className="text-sm text-slate-300">{label}</span>
+    <label className="block space-y-1.5">
+      {label ? (
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
+      ) : null}
       <textarea
         rows={rows}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-border bg-slate-950/70 px-3 py-2 text-sm"
+        className={clsx("input-field min-h-[120px] resize-y", accent.glow)}
       />
     </label>
   );

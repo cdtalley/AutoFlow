@@ -149,9 +149,10 @@ flowchart TB
 
 ### 5.4 Control Center (`frontend/`)
 
-- **Tabs**: submit inquiry (calls webhook-compatible API), live run + steps (polling / refresh), history with filters.
-- **API base**: `NEXT_PUBLIC_API_BASE` (default `http://localhost:8000`).
-- **Optional shared secret**: `NEXT_PUBLIC_WEBHOOK_API_KEY` for browser calls when the backend requires `X-API-Key` / WS token parity.
+- **Shell**: Branded header, gradient hero on submit, glass panels, accent themes, and a **Refresh** control wired to health + runs.
+- **Tabs**: submit (webhook payload), live run (poll + step timeline), history (Postgres-backed table + detail trace).
+- **API**: `NEXT_PUBLIC_API_BASE` (default `http://localhost:8000`); optional `NEXT_PUBLIC_WEBHOOK_API_KEY` when the API enforces `X-API-Key` / WS token parity.
+- **White-label / demo**: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_TAGLINE`, `NEXT_PUBLIC_CONTROL_CENTER_LABEL`, `NEXT_PUBLIC_ENVIRONMENT_LABEL`, `NEXT_PUBLIC_UI_ACCENT` (`sky` \| `violet` \| `teal` \| `amber`), `NEXT_PUBLIC_DEFAULT_TAB`, preset chips, footer links — see **`frontend/.env.example`**.
 
 ---
 
