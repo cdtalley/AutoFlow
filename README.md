@@ -347,12 +347,14 @@ Set `NEXT_PUBLIC_API_BASE` if the API is not on `http://localhost:8000` (see `fr
 
 ## 15. Testing & quality
 
+**Prerequisites:** PostgreSQL and Redis must match `DATABASE_URL` / `REDIS_URL` (e.g. `docker compose up redis postgres -d`). HTTP tests use `TestClient` inside a context manager so **lifespan** runs; the `client` fixture in `tests/conftest.py` stubs `build_graph` so runs finish **without a live Ollama** (fast CI).
+
 ```bash
 pytest -q
 ruff check app scripts tests
 ```
 
-Tests cover webhook validation, health contract, orchestrator routing, and admin-guard behavior. **Integration tests** with Testcontainers (Postgres + Redis) and **contract tests** against Ollama are the natural next investments for enterprise CI.
+GitHub Actions (`.github/workflows/ci.yml`) starts Postgres and Redis service containers and runs `pytest`. **Integration tests** with Testcontainers and **contract tests** against Ollama remain optional hardening steps.
 
 ---
 

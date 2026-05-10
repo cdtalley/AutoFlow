@@ -35,10 +35,10 @@ def test_delete_without_admin_key_when_admin_disabled(monkeypatch):
 
     app.dependency_overrides[get_db] = mock_get_db
     try:
-        client = TestClient(app)
-        r = client.delete("/api/v1/runs/some-run-id")
-        assert r.status_code == 200
-        assert r.json().get("deleted") is False
+        with TestClient(app) as client:
+            r = client.delete("/api/v1/runs/some-run-id")
+            assert r.status_code == 200
+            assert r.json().get("deleted") is False
     finally:
         app.dependency_overrides.clear()
 
@@ -53,6 +53,6 @@ def test_delete_401_when_admin_key_required(monkeypatch):
     monkeypatch.setattr("app.routers.auth_deps.get_settings", fake_settings)
     from app.main import app
 
-    c = TestClient(app)
-    r = c.delete("/api/v1/runs/any-uuid-here")
+    with TestClient(app) as c:
+        r = c.delete("/api/v1/runs/any-uuid-here")
     assert r.status_code == 401
