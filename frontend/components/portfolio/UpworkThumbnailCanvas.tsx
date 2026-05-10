@@ -4,24 +4,25 @@ import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/http";
 import type { RunStatus } from "@/lib/types";
 
-const TAGS = ["FastAPI", "PostgreSQL", "LangGraph", "Redis", "WebSockets", "Next.js", "Docker"] as const;
+/** Same pill treatment as DocuMind reference — cyan border, mono, white. */
+const TAGS = ["FastAPI", "LangGraph", "Ollama", "Next.js", "Docker", "Playwright"] as const;
 
 function metricCards(run: RunStatus | null, stepCount: number): { value: string; label: string }[] {
   if (run) {
     const conf = Math.round((run.intent_confidence ?? 0) * 100);
-    const state = run.status === "completed" ? "OK" : run.status.replace(/_/g, " ").toUpperCase().slice(0, 8);
+    const hops = stepCount > 0 ? String(stepCount) : "—";
     return [
       { value: `${conf}%`, label: "INTENT SCORE" },
-      { value: `${stepCount}`, label: "AGENT HOPS" },
+      { value: hops, label: "AGENT HOPS" },
+      { value: "Graph", label: "LANGGRAPH RUN" },
       { value: "REST", label: "/WEBHOOK · /STATUS" },
-      { value: state, label: "RUN STATE" },
     ];
   }
   return [
-    { value: "<100ms", label: "STATUS POLL" },
-    { value: "3", label: "GRAPH NODES" },
-    { value: "KEY", label: "IDEMPOTENCY" },
-    { value: "REST", label: "/WEBHOOK · /RUNS" },
+    { value: "Multi", label: "AGENT ROUTING" },
+    { value: "Typed", label: "INGRESS + SCHEMA" },
+    { value: "PG", label: "AUDIT + HISTORY" },
+    { value: "REST", label: "/WEBHOOK · /HEALTH" },
   ];
 }
 
@@ -64,82 +65,76 @@ export default function UpworkThumbnailCanvas({ runId }: { runId: string | null 
       className="relative box-border h-[750px] w-[1000px] overflow-hidden text-slate-100"
       style={{ fontFamily: "var(--font-sans), ui-sans-serif, system-ui, sans-serif" }}
     >
-      {/* Base + radial (lighter top-right, Sentinel-style) */}
+      <div className="absolute inset-0 bg-[#060f1c]" aria-hidden />
+
       <div
-        className="absolute inset-0 bg-[#0a1628]"
+        className="pointer-events-none absolute -right-32 top-1/2 h-[min(140%,920px)] w-[min(85%,720px)] -translate-y-1/2 rounded-full"
         style={{
-          backgroundImage: `
-            radial-gradient(ellipse 95% 70% at 92% 8%, rgba(30, 58, 95, 0.55) 0%, transparent 52%),
-            radial-gradient(ellipse 60% 50% at 10% 90%, rgba(6, 20, 40, 0.9) 0%, transparent 55%),
-            linear-gradient(165deg, #0a1628 0%, #060d18 100%)
-          `,
+          background:
+            "radial-gradient(circle at 40% 50%, rgba(34, 211, 238, 0.07) 0%, rgba(56, 189, 248, 0.04) 35%, transparent 70%)",
+          border: "1px solid rgba(34, 211, 238, 0.06)",
         }}
         aria-hidden
       />
 
-      {/* Cyan engineering grid */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.55]"
+        className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(0, 242, 255, 0.045) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 242, 255, 0.045) 1px, transparent 1px)
-          `,
-          backgroundSize: "40px 40px",
+          background:
+            "radial-gradient(ellipse 80% 55% at 88% 12%, rgba(30, 64, 100, 0.35) 0%, transparent 50%)",
         }}
         aria-hidden
       />
 
-      {/* Top edge cyan hairline */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent"
+        className="pointer-events-none absolute inset-0 opacity-[0.65]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(56, 189, 248, 0.038) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(56, 189, 248, 0.038) 1px, transparent 1px)
+          `,
+          backgroundSize: "32px 32px",
+        }}
         aria-hidden
       />
 
-      {/* Content: weighted top-left */}
-      <div className="relative flex h-full flex-col pl-12 pr-10 pt-14 pb-10">
-        <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-cyan-400">Reference stack</p>
+      <div className="relative flex h-full flex-col px-14 pb-12 pt-[3.25rem]">
+        <p className="text-[11px] font-bold uppercase tracking-[0.42em] text-cyan-400/95">Reference stack</p>
 
-        <h1 className="mt-4 max-w-[720px] text-[2.75rem] font-bold leading-[1.05] tracking-[-0.03em]">
+        <h1 className="mt-5 max-w-[780px] text-[2.85rem] font-bold leading-[1.06] tracking-[-0.035em]">
           <span className="text-white">AutoFlow</span>
-          <span className="text-cyan-400"> — Inquiry automation plane</span>
+          <span className="text-cyan-400" style={{ textShadow: "0 0 42px rgba(34, 211, 238, 0.22)" }}>
+            {" "}
+            — Multi-agent inquiry console
+          </span>
         </h1>
 
-        <p className="mt-4 max-w-[680px] text-[15px] leading-relaxed text-slate-400">
-          FastAPI · LangGraph + Ollama · Redis live state · Postgres audit · WebSocket / poll status · Next.js console
+        <p className="mt-5 max-w-[720px] text-[15px] font-normal leading-[1.55] text-slate-400">
+          FastAPI · LangGraph · hybrid agent routing · Postgres audit · Redis live state · Next.js console · Docker
         </p>
 
-        {/* 2×2 metrics */}
-        <div className="mt-10 grid w-[460px] grid-cols-2 gap-4">
+        <div className="mt-12 grid w-[500px] grid-cols-2 gap-5">
           {cards.map((c) => (
             <div
-              key={c.label}
-              className="rounded-xl border border-cyan-500/15 bg-[#0c1e35]/80 px-5 py-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] backdrop-blur-[2px]"
+              key={`${c.value}-${c.label}`}
+              className="rounded-2xl border border-cyan-500/20 bg-[#0c2138]/90 px-6 py-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
             >
-              <p className="text-[2rem] font-bold tabular-nums leading-none tracking-tight text-white">{c.value}</p>
-              <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">{c.label}</p>
+              <p className="text-[2.05rem] font-bold leading-none tracking-tight text-white">{c.value}</p>
+              <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">{c.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Mono tech pills */}
-        <div className="mt-10 flex max-w-[720px] flex-wrap gap-2.5">
+        <div className="mt-12 flex max-w-[760px] flex-wrap gap-3">
           {TAGS.map((t) => (
             <span
               key={t}
-              className="rounded-md border border-cyan-400/45 bg-[#050a14]/90 px-3.5 py-2 font-mono text-[13px] font-medium text-white shadow-[0_0_20px_-8px_rgba(34,211,238,0.35)]"
+              className="rounded-lg border border-cyan-400/50 bg-[#040a12]/95 px-4 py-2.5 font-mono text-[13px] font-medium text-white"
             >
               {t}
             </span>
           ))}
         </div>
-
-        {/* Subtle run id — proof without clutter */}
-        {runId?.trim() && (
-          <p className="mt-auto pt-8 font-mono text-[10px] tracking-wide text-slate-600">
-            trace · {runId.trim().slice(0, 8)}…{runId.trim().slice(-4)}
-          </p>
-        )}
       </div>
     </div>
   );

@@ -35,9 +35,7 @@ export function LiveRunsPanel({
       <div>
         <h2 className="text-xl font-semibold tracking-tight text-white">Live run</h2>
         {thumbMode ? (
-          <p className="mt-1 text-sm text-slate-400">
-            Live orchestration · status polling · multi-agent steps (portfolio view)
-          </p>
+          <p className="mt-1 text-sm text-slate-400">Status and agent steps for the run below.</p>
         ) : (
           <p className="mt-1 text-sm text-slate-500">
             Polls <code className="font-mono text-slate-400">/status</code> (and opens WS when configured). Use{" "}

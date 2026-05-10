@@ -9,7 +9,7 @@ export function formatAgentStepOutputForPortfolio(step: { action: string; output
   if (!conf) conf = o.match(/'confidence'\s*:\s*([\d.]+)/);
   const act = step.action.toLowerCase();
   if (cat && (act.includes("classif") || o.includes("category"))) {
-    return `Intent → ${cat[1]}${conf ? ` · confidence ${conf[1]}` : ""} — graph routes to the right specialist path.`;
+    return `Intent: ${cat[1]}${conf ? ` (confidence ${conf[1]})` : ""}.`;
   }
 
   return o.length > 260 ? `${o.slice(0, 260)}…` : o;

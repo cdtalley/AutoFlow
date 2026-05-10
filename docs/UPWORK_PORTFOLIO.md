@@ -3,8 +3,8 @@
 Use this file when you add AutoFlow to your **Upwork project catalog**, attach it as a **portfolio sample**, or paste pieces into **proposals**. Replace bracketed placeholders with your own details.
 
 **Portfolio images (Upwork):**  
-- **Catalog / thumbnail (upload this):** [images/upwork-thumbnail.png](images/upwork-thumbnail.png) — **exactly 1000×750** (4:3), generated from the dedicated canvas at **`/portfolio/upwork?run=<id>`** (buyer hook + live agent trace + stack strip — not the “Start here” overview).  
-- **Full proof (optional attachment):** [images/upwork-dashboard.png](images/upwork-dashboard.png) — full operator UI.
+- **AutoFlow catalog thumbnail (upload this file):** repo path **`docs/images/upwork-thumbnail.png`** (same as [images/upwork-thumbnail.png](images/upwork-thumbnail.png)). **1000×750**. Built from the DocuMind-style canvas at **`http://localhost:3000/portfolio/upwork?run=<uuid>`** (reference stack, headline, 2×2 metrics, mono pills).  
+- **Full dashboard proof (optional):** [images/upwork-dashboard.png](images/upwork-dashboard.png).
 
 **Recommended capture:** bring up **Redis, Postgres, API, Ollama,** and **`npm run dev`**, then from `frontend/` run `npm run screenshot:upwork`. The script **POSTs the demo webhook**, waits for graph steps, saves the **full dashboard** PNG, then opens **`/portfolio/upwork?run=…`** at **1000×750** for **`upwork-thumbnail.png`**. Set `PLAYWRIGHT_WEBHOOK_API_KEY` if the API requires it. Manual preview: open `http://localhost:3000/portfolio/upwork?run=<any-run-uuid>`. Optional seed: `python scripts/seed_portfolio_screenshot.py`. Postgres in compose is often on host **5433**.
 
@@ -20,13 +20,13 @@ Use this file when you add AutoFlow to your **Upwork project catalog**, attach i
 
 ## Short overview (paste into “Project details” or proposal intro)
 
-AutoFlow is a **reference-quality** system for automating business inquiries: a webhook ingests structured requests, a **LangGraph** state machine classifies intent and routes to FAQ, sales, or support agents, then either completes with a drafted response or **escalates with a human-ready handoff**. State is cached in **Redis**, durable history lives in **PostgreSQL**, and a **Next.js** control center shows health, run history, and live status. **All inference runs locally via Ollama** (`llama3`) — no OpenAI/Anthropic dependency — which is ideal for cost-sensitive or data-sovereignty clients.
+AutoFlow automates business inquiries: a webhook accepts structured requests, a **LangGraph** graph classifies intent and routes to FAQ, sales, or support paths, then returns a drafted reply or **escalates with a handoff**. **Redis** holds hot run state; **PostgreSQL** stores history. A **Next.js** UI shows health, history, and live status. Inference runs **locally via Ollama** (`llama3`), with no OpenAI/Anthropic dependency on that path.
 
-I designed it the way I’d staff a real engagement: **typed APIs**, **optional webhook API key**, **real DB health checks**, **structured logging**, **request ID propagation**, and a clear path to **auth, queues, and observability** in a follow-on phase.
+Shipped patterns: **typed APIs**, **optional webhook API key**, **DB-backed health checks**, **structured logging**, **request IDs on errors**, and headroom for **auth, queues, and observability** later.
 
 ### What the reference code already includes (client-ready ingress)
 
-These are the items I’d list in a **fixed-price catalog** or “Phase 0 delivered” scope so buyers see production-minded work, not a toy demo:
+Concrete items to list in a **fixed-price catalog** or “Phase 0 delivered” scope:
 
 | Capability | Behavior |
 |------------|----------|

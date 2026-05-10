@@ -61,8 +61,7 @@ function FlowPipeline({ accentClass }: { accentClass: string }) {
         ))}
       </div>
       <p className="relative mt-6 text-center text-[11px] leading-relaxed text-slate-500">
-        Background workers invoke the graph; the UI polls <code className="text-slate-400">/status</code> and lists runs from{" "}
-        <code className="text-slate-400">/runs</code> — same contract you&apos;d ship to a client.
+        Workers run the graph; this UI polls <code className="text-slate-400">/status</code> and loads runs from <code className="text-slate-400">/runs</code>.
       </p>
     </div>
   );
@@ -98,43 +97,38 @@ export function OverviewPanel({
 
   return (
     <div className="space-y-6">
-      {/* Buyer hook strip — always substantive */}
       <div className="flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-white/[0.08] bg-gradient-to-r from-white/[0.04] via-transparent to-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:px-6">
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-400 sm:justify-start">
           <span className="inline-flex items-center gap-2">
             <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400/90" aria-hidden />
-            Production-shaped API
+            Optional API keys, idempotent webhook
           </span>
           <span className="inline-flex items-center gap-2">
             <Star className="h-4 w-4 shrink-0 fill-amber-400/30 text-amber-400/90" aria-hidden />
-            Built to win technical screens
+            LangGraph + Ollama (local inference)
           </span>
           <span className="inline-flex items-center gap-2">
             <Award className="h-4 w-4 shrink-0 text-sky-400/90" aria-hidden />
-            {`60-second path to "wow"`}
+            Redis + Postgres
           </span>
         </div>
-        <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-slate-600 sm:text-right">
-          Upwork portfolio · show, don&apos;t tell
-        </p>
       </div>
 
-      {/* Hero — gradient frame */}
       <div className="frame-glow">
         <div className="relative overflow-hidden rounded-[1.25rem] border border-white/[0.06] bg-slate-950/92 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-10">
           <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${cfg.accent.heroGradient} opacity-[0.12]`} />
           <div className="relative max-w-4xl">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/85 shadow-inner">
               <Sparkles className="h-3 w-3 text-amber-200/90" />
-              For reviewers & hiring managers
+              Demo console
             </p>
             <h2 className="mt-5 bg-gradient-to-br from-white via-white to-slate-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl sm:leading-tight">
-              What you&apos;re evaluating in {cfg.appName}
+              What {cfg.appName} is
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-300 sm:text-lg">
-              A <strong className="text-white">credible automation reference</strong>: explicit orchestration, optional API keys,
-              idempotent ingest, structured errors with <code className="rounded bg-black/50 px-1.5 py-0.5 font-mono text-sm text-sky-200/90">request_id</code>, and an
-              operator UI that still looks intentional when the API is offline — not a throwaway chat demo.
+              Webhook intake, LangGraph routing, Redis for live run state, Postgres for history, structured errors with{" "}
+              <code className="rounded bg-black/50 px-1.5 py-0.5 font-mono text-sm text-sky-200/90">request_id</code>. The UI polls{" "}
+              <code className="rounded bg-black/50 px-1.5 py-0.5 font-mono text-sm text-sky-200/90">/status</code> and degrades cleanly when the API is down.
             </p>
           </div>
 
@@ -142,7 +136,7 @@ export function OverviewPanel({
           {[
             {
               icon: Shield,
-              title: "Ingress you can defend",
+              title: "Webhook hardening",
               body: "Rate limits, optional X-API-Key, Idempotency-Key, OpenAPI security metadata.",
             },
             {
@@ -152,8 +146,8 @@ export function OverviewPanel({
             },
             {
               icon: BookOpen,
-              title: "Observable graph",
-              body: "LangGraph branches by intent; agent steps are logged for audit — not a black box.",
+              title: "Graph + steps",
+              body: "LangGraph branches by intent; each step is stored for audit.",
             },
           ].map((c) => (
             <div
@@ -253,10 +247,10 @@ export function OverviewPanel({
             aria-hidden
           />
           <div className="relative">
-            <h3 className="text-sm font-semibold text-white">One-click portfolio demo</h3>
+            <h3 className="text-sm font-semibold text-white">Demo run</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-400">
-              Fires a realistic <strong className="text-slate-200">enterprise evaluation</strong> inquiry through the same webhook your integrations
-              would use — then jumps to <strong className="text-slate-200">Live run</strong> so you can watch status and agent steps populate.
+              POSTs a sample inquiry to <code className="font-mono text-xs text-slate-500">/api/v1/webhook</code>, then switches to{" "}
+              <strong className="text-slate-200">Live run</strong> so you can watch status and steps.
             </p>
           </div>
           <div className="relative mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -297,7 +291,6 @@ export function OverviewPanel({
         </div>
       </div>
 
-      {/* Reviewer checklist */}
       <div className="panel-inset grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
           "Structured 422 / 500 JSON",

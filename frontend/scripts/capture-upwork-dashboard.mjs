@@ -140,7 +140,6 @@ async function main() {
     await page.screenshot({ path: OUT, fullPage: true });
     console.log("Wrote", OUT);
 
-    /** Dedicated 1000×750 portfolio canvas — headline + trace + stack (fits Upwork 4:3). */
     const thumbUrl = `${UI_BASE}/portfolio/upwork?run=${encodeURIComponent(runId)}`;
     console.log("Thumbnail canvas", thumbUrl);
     await page.setViewportSize({ width: THUMB_W, height: THUMB_H });

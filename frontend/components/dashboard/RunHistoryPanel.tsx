@@ -75,8 +75,7 @@ export function RunHistoryPanel({
               <>Switch to <strong className="text-slate-500">All</strong> to see {totalRunCount} run(s) in the database.</>
             ) : (
               <>
-                History reads from Postgres. Use <strong className="text-slate-500">Start here → Run full demo</strong> for a realistic enterprise
-                inquiry, then return to this tab.
+                History reads from Postgres. Use <strong className="text-slate-500">Start here → Run full demo</strong>, then open this tab again.
               </>
             )}
           </p>
