@@ -23,10 +23,20 @@ export async function getHealth(): Promise<Record<string, unknown>> {
   return request("/health");
 }
 
+function webhookHeaders(): Record<string, string> {
+  const h: Record<string, string> = {};
+  const key = process.env.NEXT_PUBLIC_WEBHOOK_API_KEY;
+  if (key) {
+    h["X-API-Key"] = key;
+  }
+  return h;
+}
+
 export async function createInquiry(payload: InquiryRequest): Promise<WebhookResponse> {
   return request("/api/v1/webhook", {
     method: "POST",
     body: JSON.stringify(payload),
+    headers: webhookHeaders(),
   });
 }
 
@@ -44,5 +54,7 @@ export async function getRunDetails(runId: string): Promise<RunStatus> {
 
 export function getWebSocketUrl(runId: string): string {
   const base = API_BASE.replace(/^http/, "ws");
-  return `${base}/api/v1/ws/${runId}`;
+  const token = process.env.NEXT_PUBLIC_WEBHOOK_API_KEY;
+  const q = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `${base}/api/v1/ws/${runId}${q}`;
 }

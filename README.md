@@ -1,101 +1,47 @@
 # AutoFlow
 
-**Multi-agent business process automation** — classify inbound inquiries, route them through specialized agents, auto-resolve or escalate with a full audit trail. **All LLM inference runs locally** via [Ollama](https://ollama.com) (`llama3`). No paid model APIs.
+Inbound inquiries hit a webhook, get classified, routed through a small set of specialist paths (FAQ, sales, support), and either finish with a drafted response or escalate with a reason you can actually audit. LLM work goes through [Ollama](https://ollama.com) with `llama3` on your machine—no OpenAI, no Anthropic, no token bill.
 
-I built this as a **portfolio-grade reference implementation**: something a hiring manager can skim in two minutes and still understand *what problem it solves*, *how I decomposed it*, and *where I’d harden it for production*.
-
----
-
-## Why I built this
-
-Over my career I’ve spent a lot of time at the intersection of **data science, machine learning, and production systems** — taking models from notebooks into APIs, thinking about latency, failure modes, and what “done” means for stakeholders who don’t care about your architecture diagram.
-
-LLM-powered automation is no different: the interesting work is not “call a model,” it’s **orchestration, guardrails, auditability, and operator UX**. AutoFlow is my answer to that:
-
-- **Explicit state machine** (LangGraph) instead of an opaque chain of prompts  
-- **Fast vs. durable storage** — Redis for hot run state, PostgreSQL for history  
-- **Human in the loop** — escalation paths with reasons, not blind hand-waving  
-- **Real-time visibility** — WebSockets + a **Next.js** control center so a reviewer can *see* the system work  
-
-If you’re evaluating whether I can own an AI-facing service end-to-end: this repo is the shape of how I think about it.
+I use this repo as a sample when someone asks whether I can wire models into a real service: not a notebook, not a demo script, but something with persistence, failure behavior, and an operator-facing UI.
 
 ---
 
-## What I bring (at a glance)
+## What this is
 
-| Area | How it shows up here |
-|------|----------------------|
-| **Backend & APIs** | FastAPI, async lifecycle, dependency-friendly singletons, versioned REST under `/api/v1` |
-| **Data & persistence** | SQLAlchemy async + PostgreSQL for runs; Redis for TTL’d session state |
-| **ML / LLM integration** | Structured classification (JSON mode), retries, local Ollama only — cost and vendor control |
-| **Orchestration** | LangGraph graph with routing, checkpoints, append-only agent steps |
-| **Frontend** | Next.js 14, TypeScript, Tailwind — dashboard, live polling, WebSocket hookup |
-| **Ops mindset** | Docker Compose, health checks, `.env` separation, simulation script for load demos |
+Most of the “hard” part of LLM products is everything around the model call: routing, retries, where state lives, what happens when Postgres is fine but Redis isn’t, and whether a human can reconstruct what happened. AutoFlow is my cut at that layer.
 
-I’m comfortable going deep on **statistics and model evaluation** when the product requires it; here the emphasis is on **reliable automation plumbing** around the model, which is what ships.
+The graph is explicit (LangGraph). Hot state for polling sits in Redis; run history and steps you care about for disputes live in Postgres. The frontend is Next.js with TypeScript—I wanted something I’d actually open during an incident, not a Streamlit toy.
 
 ---
 
-## Architecture
+## Flow
 
 ```text
-Inbound inquiry (POST /webhook)
-        |
-LangGraph state machine (typed AgentState)
-        |
-Intent classification (Ollama / local)
-        |
-  +-- FAQ / general  -> FAQ agent + knowledge tool
-  +-- Sales / pricing -> Lead agent + mock CRM scoring
-  +-- Support paths   -> Support agent + severity routing
-        |
-  escalate? -> Handoff agent (human-ready summary)
-        |
-Synthesize response (simulated email tool)
-        |
-Persist audit (PostgreSQL) + cache (Redis) + broadcast (WebSocket)
-        |
-Next.js Control Center (live + history)
+POST /webhook
+    → LangGraph (typed AgentState)
+    → intent classification (Ollama, JSON where it matters)
+    → FAQ | lead (mock CRM) | support branch
+    → optional handoff if escalation fires
+    → draft + simulated send
+    → Postgres + Redis + WebSocket fan-out
+    → Next.js dashboard (history + live view)
 ```
 
-**Design choices I’d defend in an interview:**
-
-1. **Graph over spaghetti** — Routing and escalation are explicit; easier to test and to extend.
-2. **Redis + Postgres** — Hot path for status polling; durable source of truth for compliance-ish audit.
-3. **Synchronous LLM client in a thread pool** — Keeps FastAPI async while talking to a blocking HTTP client; pragmatic for local Ollama.
-4. **Portfolio frontend** — Not a throwaway demo UI: typed client, filters, and live run tracking so the story is visible.
+I keep the LLM client synchronous and run `graph.invoke` off the async event loop when needed—that’s a deliberate trade for local Ollama and blocking HTTP, not an accident.
 
 ---
 
-## Stack
+## Stack (honest list)
 
-| Layer | Technology |
-|-------|------------|
-| API | Python 3.11+, FastAPI, Uvicorn |
-| Agents | LangGraph (+ CrewAI in deps for role/task patterns) |
-| LLM | Ollama @ `http://localhost:11434`, model `llama3` |
-| Cache | Redis (`redis-py`) |
-| Database | PostgreSQL, `asyncpg`, SQLAlchemy async |
-| Realtime | FastAPI WebSockets |
-| Frontend | Next.js 14, React 18, TypeScript, Tailwind, Recharts |
-| Config | Pydantic v2, `pydantic-settings` |
-| Tests | `pytest`, `pytest-asyncio` |
-| Containers | Docker, Docker Compose |
+Python 3.11, FastAPI, Uvicorn, LangGraph (CrewAI is in requirements for agent-style patterns; the graph here is LangGraph-first). Postgres via async SQLAlchemy + asyncpg, Redis for TTL’d run snapshots and step lists. Next.js 14, React 18, Tailwind, a bit of Recharts on the dashboard. Pydantic v2 and pydantic-settings for config. pytest for the pieces that don’t need a live model. Docker Compose for the bits that aren’t Ollama.
 
 ---
 
-## Prerequisites
+## Run it
 
-- Python 3.11+
-- Node.js 20+
-- [Ollama](https://ollama.com) running locally (for real agent behavior)
-- Docker & Docker Compose (Redis + PostgreSQL)
+You’ll need Ollama running if you want the agents to do anything interesting, plus Redis and Postgres (Compose is the easy path).
 
----
-
-## Quick start
-
-**Backend**
+Backend:
 
 ```bash
 pip install -r requirements.txt
@@ -105,7 +51,7 @@ docker compose up redis postgres -d
 uvicorn app.main:app --reload
 ```
 
-**Frontend** (from repo root)
+Frontend (from repo root):
 
 ```bash
 cd frontend
@@ -113,9 +59,9 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The UI expects the API at `http://localhost:8000` by default; override with `NEXT_PUBLIC_API_BASE` if needed.
+UI defaults to `http://localhost:8000` for the API. Point it elsewhere with `NEXT_PUBLIC_API_BASE` (see `frontend/.env.example`).
 
-**Stress demo**
+Throw load at it if you want to see the dashboard move:
 
 ```bash
 python scripts/simulate_requests.py
@@ -123,59 +69,75 @@ python scripts/simulate_requests.py
 
 ---
 
-## API summary
+## API (short)
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `GET` | `/health` | Ollama, Redis, DB signal |
-| `POST` | `/api/v1/webhook` | Submit inquiry; returns `run_id` |
-| `GET` | `/api/v1/status/{run_id}` | Poll run state |
-| `GET` | `/api/v1/status/{run_id}/steps` | Step list from Redis |
-| `WS` | `/api/v1/ws/{run_id}` | Live updates |
-| `GET` | `/api/v1/runs` | List runs |
-| `GET` | `/api/v1/runs/{run_id}` | Full run from DB |
-| `DELETE` | `/api/v1/runs/{run_id}` | Remove run (DB + Redis keys) |
-
----
-
-## Intent routing (high level)
-
-- **`general_inquiry`, `faq`** — FAQ / knowledge agent  
-- **`sales`, `pricing`, `demo_request`, `upgrade`** — Lead qualification + draft reply  
-- **`support`, `bug_report`, `complaint`, `billing_issue`** — Support agent; high/critical severity triggers escalation  
-- Escalated runs — Handoff summary for a human operator  
+| Method | Path | Notes |
+|--------|------|--------|
+| GET | `/health` | Returns `status` (`ok` or `degraded`) and booleans for Ollama, Redis, and a real DB ping |
+| POST | `/api/v1/webhook` | Starts a run; returns `run_id` and optional `idempotent_replay`. Per-IP rate limit (see `WEBHOOK_RATE_LIMIT`). Optional `Idempotency-Key` header dedupes within `IDEMPOTENCY_TTL_SECONDS`. If `WEBHOOK_API_KEY` is set, send `X-API-Key` |
+| GET | `/api/v1/status/{run_id}` | Poll state (Redis first, then DB) |
+| GET | `/api/v1/status/{run_id}/steps` | Steps from Redis |
+| WS | `/api/v1/ws/{run_id}` | Live channel. If `WEBHOOK_API_KEY` is set, connect with `?token=<same value>` |
+| GET | `/api/v1/runs` | Recent runs |
+| GET | `/api/v1/runs/{run_id}` | Full record from DB |
+| DELETE | `/api/v1/runs/{run_id}` | Drops DB row and Redis run/step keys. If `AUTOFLOW_ADMIN_API_KEY` is set, send `X-Admin-Key` |
 
 ---
 
-## Testing
+## Intents (where traffic goes)
+
+FAQ-ish and general inquiries go to the knowledge-backed FAQ path. Sales, pricing, demos, upgrades go through lead scoring and a drafted reply. Support, bugs, complaints, and billing go through support; if severity comes back high or critical, it escalates and the handoff agent writes something a human can pick up without re-reading the whole thread.
+
+---
+
+## Config I actually use in “prod-shaped” demos
+
+| Variable | What it does |
+|----------|----------------|
+| `CORS_ORIGINS` | Comma-separated browser origins, or `*` for local work (`*` turns off credentialed CORS by design) |
+| `WEBHOOK_API_KEY` | When set: `X-API-Key` on POST `/webhook`, and `?token=` on WebSocket |
+| `AUTOFLOW_ADMIN_API_KEY` | When set: `X-Admin-Key` required on DELETE `/runs/{run_id}` |
+| `WEBHOOK_RATE_LIMIT` | slowapi string, e.g. `60/minute` |
+| `RATE_LIMIT_STORAGE` | `memory` (single worker) or `redis` (shared across workers) |
+| `IDEMPOTENCY_TTL_SECONDS` | How long `Idempotency-Key` maps to the same `run_id` |
+| `LOG_LEVEL` | Standard library logging level |
+
+Shared singletons hang off `app/runtime.py` so routers don’t import `main` in a circle. On shutdown the SQLAlchemy async engine is disposed cleanly.
+
+Ingress for a paying client: rate-limited webhook, Redis idempotency for safe retries, optional keys for webhook/admin/WS, structured 422/500 JSON with `request_id`, OpenAPI security metadata. Handoff notes: [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) and [docs/UPWORK_PORTFOLIO.md](docs/UPWORK_PORTFOLIO.md).
+
+---
+
+## Tests
 
 ```bash
 pytest -q
 ```
 
-Tests cover webhook validation, health, and orchestrator routing helpers. I’d expand with contract tests against Ollama mocks and integration tests with Testcontainers for a production team.
+Coverage today is mostly webhook validation, health shape, and orchestrator routing helpers. If I were shipping this for a paying client, I’d add contract tests around the Ollama boundary and something like Testcontainers for CI—not because I don’t trust the code, but because that’s what keeps regressions from sneaking in when someone “just tweaks the prompt.”
 
 ---
 
-## If I took this to production (next steps)
+## What I’d still build for a real launch
 
-These are the conversations I expect with a staff+ panel — and how I’d address them:
+Webhook and WS auth beyond a shared secret, idempotency on ingest, rate limits, traces that follow a `run_id` through the graph, and a worker queue so a traffic spike doesn’t tie up the API process. Eval hooks per intent would live next to the graph, not buried in string templates.
 
-- **Authn/z on webhook and WebSockets** — API keys, JWT, per-tenant isolation  
-- **Idempotency** — Dedup inbound messages by external id  
-- **Observability** — Structured logs, traces around graph nodes, metrics on escalation rate  
-- **Model governance** — Eval sets per intent, regression checks before promote  
-- **Queue-based workers** — Decouple `webhook` accept from long-running `invoke` for burst traffic  
+None of that is missing because I forgot; it’s the line between “credible sample” and “your contract.”
 
 ---
 
-## License & contact
+## Upwork / proposals / resume copy
 
-This project is a **personal portfolio piece**.  
-If you’re hiring for **data science, ML engineering, or backend-heavy AI product work** and want to talk through design tradeoffs or extend AutoFlow for your use case, I’m happy to walk through it in detail.
+I keep catalog blurbs, pricing anchors I’m comfortable quoting, and resume bullets in one place so I’m not rewriting the same paragraph every proposal:
 
-*(Add your preferred contact: LinkedIn, site, or email — I keep this README honest and leave those lines for you.)*
+[docs/UPWORK_PORTFOLIO.md](docs/UPWORK_PORTFOLIO.md)
 
 ---
 
-**Zero paid LLM APIs.** Inference stays on your machine via Ollama and `llama3`.
+## Contact
+
+No separate license file—this is my own work sample. If you’re comparing vendors on Upwork and want a live walkthrough of how the graph and persistence fit together, that’s the channel I use.
+
+---
+
+Inference stays local: Ollama + `llama3`. No paid model APIs in this design.

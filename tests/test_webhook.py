@@ -8,6 +8,11 @@ client = TestClient(app)
 def test_health_returns_200():
     resp = client.get("/health")
     assert resp.status_code == 200
+    data = resp.json()
+    assert "status" in data
+    assert "ollama" in data
+    assert "redis" in data
+    assert "database" in data
 
 
 def test_webhook_returns_run_id():

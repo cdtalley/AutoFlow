@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import delete_run, get_db, get_run, list_runs
-from app.main import get_redis_memory
 from app.models.schemas import RunListItem, RunStatus
+from app.routers.auth_deps import require_admin_api_key
+from app.runtime import get_redis_memory
 
 router = APIRouter()
 
@@ -51,9 +52,11 @@ async def run_detail(run_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.delete("/runs/{run_id}")
-async def delete_run_endpoint(run_id: str, db: AsyncSession = Depends(get_db)):
+async def delete_run_endpoint(
+    run_id: str,
+    _: None = Depends(require_admin_api_key),
+    db: AsyncSession = Depends(get_db),
+):
     deleted = await delete_run(db, run_id)
-    redis = get_redis_memory().client
-    redis.delete(f"autoflow:run:{run_id}")
-    redis.delete(f"autoflow:steps:{run_id}")
+    get_redis_memory().delete_run_keys(run_id)
     return {"deleted": deleted, "run_id": run_id}

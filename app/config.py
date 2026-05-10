@@ -15,6 +15,19 @@ class Settings(BaseSettings):
     MAX_AGENT_ITERATIONS: int = 5
     WEBSOCKET_HEARTBEAT_SECONDS: int = 30
     APP_ENV: str = "development"
+    # Comma-separated origins; use "*" for dev only. Production: https://app.example.com,https://www.example.com
+    CORS_ORIGINS: str = "*"
+    # If set, POST /api/v1/webhook requires header X-API-Key: <value>
+    WEBHOOK_API_KEY: str | None = None
+    # If set, DELETE /api/v1/runs/{run_id} requires header X-Admin-Key: <value>
+    AUTOFLOW_ADMIN_API_KEY: str | None = None
+    LOG_LEVEL: str = "INFO"
+    # slowapi limit for POST /webhook (per client IP). Examples: "60/minute", "100/hour"
+    WEBHOOK_RATE_LIMIT: str = "60/minute"
+    # "memory" = single process only; "redis" = shared limiter state across workers
+    RATE_LIMIT_STORAGE: str = "memory"
+    # How long Idempotency-Key maps to the same run_id (seconds)
+    IDEMPOTENCY_TTL_SECONDS: int = 86400
 
 
 @lru_cache

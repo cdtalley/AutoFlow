@@ -16,6 +16,7 @@ class WebhookResponse(BaseModel):
     status: str
     message: str
     poll_url: str
+    idempotent_replay: bool = False
 
 
 class RunStatus(BaseModel):

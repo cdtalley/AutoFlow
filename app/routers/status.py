@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.db.database import get_db, get_run
-from app.main import get_redis_memory, get_websocket_manager
+from app.routers.auth_deps import verify_websocket_ingest_token
+from app.runtime import get_redis_memory, get_websocket_manager
 from app.models.schemas import RunStatus
 
 router = APIRouter()
@@ -62,7 +63,11 @@ async def steps(run_id: str):
 
 
 @router.websocket("/ws/{run_id}")
-async def ws_run(websocket: WebSocket, run_id: str):
+async def ws_run(websocket: WebSocket, run_id: str, token: str | None = Query(None)):
+    if not verify_websocket_ingest_token(token):
+        await websocket.close(code=1008, reason="missing or invalid token")
+        return
+
     manager = get_websocket_manager()
     redis_memory = get_redis_memory()
     settings = get_settings()

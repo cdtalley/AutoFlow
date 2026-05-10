@@ -1,65 +1,72 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.agents.faq_agent import FAQAgent
 from app.agents.handoff_agent import HandoffAgent
 from app.agents.lead_agent import LeadAgent
 from app.agents.orchestrator import build_graph
 from app.agents.support_agent import SupportAgent
+from app import runtime as app_runtime
 from app.config import get_settings
-from app.db.database import init_db
+from app.db import database as db_module
+from app.db.database import init_db, ping_db
+from app.errors import unhandled_exception_handler, validation_exception_handler
+from app.limiter import limiter
 from app.memory.redis_memory import RedisMemory
+from app.middleware.request_id import RequestIdMiddleware
+from app.openapi import build_openapi_schema
 from app.routers import runs, status, webhook
 from app.tools.crm_tool import CRMTool
 from app.tools.email_tool import EmailTool
 from app.tools.knowledge_tool import KnowledgeTool
 from app.utils.ollama_client import OllamaClient
+from app.websocket_manager import WebSocketManager
 
-logging.basicConfig(level=logging.INFO)
+
+def _configure_logging() -> None:
+    level_name = os.getenv("LOG_LEVEL") or get_settings().LOG_LEVEL
+    level = getattr(logging, level_name.upper(), logging.INFO)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S",
+    )
+
+
+_configure_logging()
 logger = logging.getLogger(__name__)
 
-_ollama_client = None
-_redis_memory = None
-_graph = None
-_websocket_manager = None
+
+def _cors_allow_origins() -> tuple[list[str], bool]:
+    raw = get_settings().CORS_ORIGINS.strip()
+    if raw == "*":
+        return ["*"], False
+    origins = [o.strip() for o in raw.split(",") if o.strip()]
+    return origins or ["*"], True
 
 
-class WebSocketManager:
-    def __init__(self):
-        self.active_connections: dict[str, list[WebSocket]] = {}
-
-    async def connect(self, run_id: str, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.setdefault(run_id, []).append(websocket)
-
-    def disconnect(self, run_id: str, websocket: WebSocket):
-        if run_id in self.active_connections and websocket in self.active_connections[run_id]:
-            self.active_connections[run_id].remove(websocket)
-            if not self.active_connections[run_id]:
-                del self.active_connections[run_id]
-
-    async def broadcast_to_run(self, run_id: str, message: dict):
-        clients = self.active_connections.get(run_id, [])
-        for ws in list(clients):
-            try:
-                await ws.send_json(message)
-            except Exception:
-                self.disconnect(run_id, ws)
+def _custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    app.openapi_schema = build_openapi_schema(app)
+    return app.openapi_schema
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _ollama_client, _redis_memory, _graph, _websocket_manager
-
     settings = get_settings()
     await init_db()
 
-    _ollama_client = OllamaClient(settings.OLLAMA_BASE_URL, settings.LLM_MODEL)
-    _redis_memory = RedisMemory(settings.REDIS_URL)
+    app_runtime.ollama_client = OllamaClient(settings.OLLAMA_BASE_URL, settings.LLM_MODEL)
+    app_runtime.redis_memory = RedisMemory(settings.REDIS_URL)
 
     knowledge_tool = KnowledgeTool()
     crm_tool = CRMTool()
@@ -70,8 +77,8 @@ async def lifespan(app: FastAPI):
     support_agent = SupportAgent()
     handoff_agent = HandoffAgent()
 
-    _graph = build_graph(
-        ollama_client=_ollama_client,
+    app_runtime.graph = build_graph(
+        ollama_client=app_runtime.ollama_client,
         faq_agent=faq_agent,
         lead_agent=lead_agent,
         support_agent=support_agent,
@@ -80,66 +87,75 @@ async def lifespan(app: FastAPI):
         knowledge_tool=knowledge_tool,
         crm_tool=crm_tool,
     )
-    _websocket_manager = WebSocketManager()
+    app_runtime.websocket_manager = WebSocketManager()
 
-    logger.info("Ollama healthy: %s", _ollama_client.health_check())
-    logger.info("Redis healthy: %s", _redis_memory.health_check())
+    ollama_ok = app_runtime.ollama_client.health_check()
+    redis_ok = app_runtime.redis_memory.health_check()
+    if not ollama_ok:
+        logger.warning(
+            "Ollama not reachable at %s — LLM routes may return errors until it is up",
+            settings.OLLAMA_BASE_URL,
+        )
+    if not redis_ok:
+        logger.warning("Redis not reachable — status cache, idempotency, and rate limits may fail until it is up")
+    logger.info("Ollama healthy: %s | Redis healthy: %s", ollama_ok, redis_ok)
 
     yield
+
+    try:
+        await db_module.engine.dispose()
+    except Exception as exc:
+        logger.warning("DB engine dispose: %s", exc)
+
+    app_runtime.ollama_client = None
+    app_runtime.redis_memory = None
+    app_runtime.graph = None
+    app_runtime.websocket_manager = None
     logger.info("AutoFlow shutting down")
 
 
 app = FastAPI(
     title="AutoFlow",
-    description="Multi-Agent Business Process Automation - powered by local Ollama",
+    description="Multi-Agent Business Process Automation — powered by local Ollama",
     version="1.0.0",
     lifespan=lifespan,
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 
+origins, allow_credentials = _cors_allow_origins()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(RequestIdMiddleware)
 
 app.include_router(webhook.router, prefix="/api/v1", tags=["Webhook"])
 app.include_router(status.router, prefix="/api/v1", tags=["Status"])
 app.include_router(runs.router, prefix="/api/v1", tags=["Runs"])
-
-
-def get_ollama_client() -> OllamaClient | None:
-    return _ollama_client
-
-
-def get_redis_memory() -> RedisMemory:
-    return _redis_memory
-
-
-def get_graph():
-    return _graph
-
-
-def get_websocket_manager() -> WebSocketManager:
-    return _websocket_manager
+app.openapi = _custom_openapi
 
 
 @app.get("/health")
 async def health():
-    db_ok = True
-    try:
-        pass
-    except Exception:
-        db_ok = False
+    db_ok = await ping_db()
+    ollama = app_runtime.ollama_client.health_check() if app_runtime.ollama_client else False
+    redis_ok = app_runtime.redis_memory.health_check() if app_runtime.redis_memory else False
+    degraded = not (db_ok and redis_ok)
     return {
-        "ollama": _ollama_client.health_check() if _ollama_client else False,
-        "redis": _redis_memory.health_check() if _redis_memory else False,
-        "db": db_ok,
-        "timestamp": datetime.utcnow().isoformat(),
+        "status": "degraded" if degraded else "ok",
+        "ollama": ollama,
+        "redis": redis_ok,
+        "database": db_ok,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
 
 
 @app.get("/")
 async def root():
-    return {"message": "AutoFlow API", "docs": "/docs"}
+    return {"message": "AutoFlow API", "docs": "/docs", "health": "/health"}

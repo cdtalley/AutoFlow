@@ -13,6 +13,7 @@ export interface WebhookResponse {
   status: string;
   message: string;
   poll_url: string;
+  idempotent_replay?: boolean;
 }
 
 export interface AgentStep {

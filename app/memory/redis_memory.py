@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 import redis
@@ -32,3 +33,20 @@ class RedisMemory:
             return bool(self.client.ping())
         except Exception:
             return False
+
+    @staticmethod
+    def _idempotency_redis_key(client_key: str) -> str:
+        digest = hashlib.sha256(client_key.encode("utf-8")).hexdigest()
+        return f"autoflow:idempotency:{digest}"
+
+    def get_idempotent_run_id(self, client_key: str) -> str | None:
+        return self.client.get(self._idempotency_redis_key(client_key))
+
+    def claim_idempotent_run_id(self, client_key: str, run_id: str, ttl_seconds: int) -> bool:
+        """Return True if this server won the key and should enqueue work for run_id."""
+        key = self._idempotency_redis_key(client_key)
+        return bool(self.client.set(key, run_id, nx=True, ex=ttl_seconds))
+
+    def delete_run_keys(self, run_id: str) -> None:
+        self.client.delete(f"autoflow:run:{run_id}")
+        self.client.delete(f"autoflow:steps:{run_id}")
