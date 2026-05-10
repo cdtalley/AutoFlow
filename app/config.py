@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     LLM_MODEL: str = "llama3"
     REDIS_URL: str = "redis://localhost:6379"
-    DATABASE_URL: str = "postgresql+asyncpg://autoflow:autoflow@localhost:5432/autoflow"
-    SYNC_DATABASE_URL: str = "postgresql://autoflow:autoflow@localhost:5432/autoflow"
+    DATABASE_URL: str = "postgresql+asyncpg://autoflow:autoflow@localhost:5433/autoflow"
+    SYNC_DATABASE_URL: str = "postgresql://autoflow:autoflow@localhost:5433/autoflow"
     ESCALATION_CONFIDENCE_THRESHOLD: float = 0.4
     MAX_AGENT_ITERATIONS: int = 5
     WEBSOCKET_HEARTBEAT_SECONDS: int = 30

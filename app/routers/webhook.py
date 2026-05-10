@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from langchain_core.messages import HumanMessage
+from starlette.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -32,6 +33,7 @@ def _normalize_idempotency_key(raw: str | None) -> str | None:
 @limiter.limit(_WEBHOOK_RL)
 async def webhook(
     request: Request,
+    response: Response,
     body: InquiryRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),

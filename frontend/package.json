@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "screenshot:upwork": "npx --yes playwright@1.49.1 screenshot http://localhost:3000 ../docs/images/upwork-dashboard.png \"--viewport-size=1600,1000\" --full-page \"--wait-for-timeout=12000\""
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -11,6 +11,8 @@ import asyncio
 import logging
 from typing import Any
 
+from app.utils.state_json import state_json_safe
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,12 +36,17 @@ async def process_inquiry_run(
         redis_memory.set_run_state(run_id, state_dict)
         for step in final_state.get("agent_steps", []):
             redis_memory.append_step(run_id, step)
-        await ws_manager.broadcast_to_run(run_id, {"type": "completed", "state": state_dict})
+        await ws_manager.broadcast_to_run(
+            run_id, {"type": "completed", "state": state_json_safe(state_dict)}
+        )
     except Exception as exc:
         logger.exception("Graph run failed run_id=%s", run_id)
         error_state = {**initial_state, "status": "error", "error": str(exc)}
         redis_memory.set_run_state(run_id, error_state)
         await save_run(db_session, error_state, subject)
-        await ws_manager.broadcast_to_run(run_id, {"type": "error", "error": str(exc)})
+        await ws_manager.broadcast_to_run(
+            run_id,
+            {"type": "error", "error": str(exc), "state": state_json_safe(error_state)},
+        )
     finally:
         await db_session.close()

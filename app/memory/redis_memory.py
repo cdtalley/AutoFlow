@@ -3,6 +3,8 @@ import json
 
 import redis
 
+from app.utils.state_json import state_json_safe
+
 
 class RedisMemory:
     def __init__(self, redis_url: str):
@@ -10,7 +12,7 @@ class RedisMemory:
 
     def set_run_state(self, run_id: str, state: dict, ttl_seconds: int = 3600):
         key = f"autoflow:run:{run_id}"
-        self.client.set(key, json.dumps(state), ex=ttl_seconds)
+        self.client.set(key, json.dumps(state_json_safe(state)), ex=ttl_seconds)
 
     def get_run_state(self, run_id: str) -> dict | None:
         key = f"autoflow:run:{run_id}"

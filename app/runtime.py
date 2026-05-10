@@ -19,21 +19,21 @@ graph: Any = None
 websocket_manager: "WebSocketManager | None" = None
 
 
-def get_ollama_client():
+def get_ollama_client() -> "OllamaClient | None":
     return ollama_client
 
 
-def get_redis_memory():
+def get_redis_memory() -> "RedisMemory":
     if redis_memory is None:
         raise RuntimeError("Redis not initialized")
     return redis_memory
 
 
-def get_graph():
+def get_graph() -> Any:
     return graph
 
 
-def get_websocket_manager():
+def get_websocket_manager() -> "WebSocketManager":
     if websocket_manager is None:
         raise RuntimeError("WebSocket manager not initialized")
     return websocket_manager

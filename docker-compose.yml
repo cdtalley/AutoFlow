@@ -24,7 +24,8 @@ services:
       POSTGRES_USER: autoflow
       POSTGRES_PASSWORD: autoflow
     ports:
-      - "5432:5432"
+      # 5433 avoids clash with a local PostgreSQL install bound to 5432 (common on Windows).
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
