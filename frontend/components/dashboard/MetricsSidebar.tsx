@@ -68,7 +68,7 @@ export function MetricsSidebar({
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">{cfg.appName}</p>
         <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">{cfg.controlCenterLabel}</h2>
-        <p className="mt-2 text-xs leading-relaxed text-slate-500">Live metrics from your API. Tune copy & colors via env — see `.env.example`.</p>
+        <p className="mt-2 text-xs leading-relaxed text-slate-500">Live metrics from the API. Tune copy and colors via env — see `.env.example`.</p>
       </div>
 
       {isHydrating && (
@@ -167,7 +167,7 @@ export function MetricsSidebar({
           </ResponsiveContainer>
           {stats.total === 0 && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-slate-950/55 px-4 text-center text-[11px] leading-relaxed text-slate-500">
-              Chart fills after your first inquiries — try <span className="text-slate-400">Start here → Run full demo</span>.
+              Chart fills after the first inquiries — try <span className="text-slate-400">Start here → Run full demo</span>.
             </div>
           )}
         </div>

@@ -256,6 +256,7 @@ export function OverviewPanel({
           <div className="relative mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
+              data-testid="overview-run-full-demo"
               disabled={!readyForDemo || demoBusy}
               onClick={() => void onRunFullDemo()}
               className={clsx(

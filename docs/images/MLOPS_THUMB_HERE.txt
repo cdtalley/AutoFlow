@@ -1,0 +1,12 @@
+MLOps catalog thumbnail (1000×750) is written here by:
+
+  cd frontend
+  npm run dev
+  npm run screenshot:mlops
+
+Output: mlops-thumbnail.png (this folder)
+
+Preview in browser:
+  http://localhost:3000/portfolio/mlops
+
+See docs/MLOPS_PORTFOLIO.md for the capability map and demo walkthrough.

@@ -51,7 +51,7 @@ export function AppShell({
               </div>
               <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-400">{cfg.tagline}</p>
               <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-600">
-                Live control surface · portfolio · technical screen ready
+                Operator console · health · runs · history
               </p>
               {cfg.showApiEndpointBadge && (
                 <p className="mt-2 font-mono text-[11px] text-slate-500">

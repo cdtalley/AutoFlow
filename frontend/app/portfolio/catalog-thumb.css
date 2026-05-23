@@ -1,0 +1,10 @@
+/**
+ * Portfolio catalog thumbnail only — matches Sentinel / DocuMind grid treatment.
+ * Imported from app/portfolio/layout.tsx (scoped to /portfolio routes).
+ */
+.portfolio-catalog-grid {
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.055) 1px, transparent 1px);
+  background-size: 40px 40px;
+}

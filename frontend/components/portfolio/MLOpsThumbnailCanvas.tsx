@@ -3,32 +3,38 @@
 import type { CSSProperties } from "react";
 
 /**
- * Upwork / portfolio catalog tile — same visual system as SentinelAI & DocuMind:
- * navy + cyan grid, REFERENCE STACK, title split, dot-stack subtitle, 2×2 metrics, mono pills, thin glow frame.
- * Static by design (catalog parity); no live API so capture always matches the other tiles.
+ * MLOps catalog thumbnail — static canvas for Playwright capture (1000×750).
+ * copy emphasizes serving, lineage, CI, and health-gated ops.
  */
-const TAGS = ["Python", "LangChain", "LangGraph", "Ollama", "Postgres", "Redis", "Docker"] as const;
+const TAGS = [
+  "FastAPI",
+  "LangGraph",
+  "Ollama",
+  "Postgres",
+  "Redis",
+  "Docker",
+  "GitHub Actions",
+] as const;
 
 const CATALOG_METRICS: { value: string; label: string }[] = [
-  { value: "8+", label: "ORCHESTRATION" },
-  { value: "<2s", label: "RESPONSE TIME" },
-  { value: "LLM", label: "MODEL AGNOSTIC" },
-  { value: "Async", label: "TASK EXECUTION" },
+  { value: "CI", label: "AUTOMATED TESTS" },
+  { value: "/health", label: "LB-READY PROBES" },
+  { value: "run_id", label: "LINEAGE PER REQUEST" },
+  { value: "Async", label: "NON-BLOCKING SERVE" },
 ];
 
 const mono: CSSProperties = {
   fontFamily: "var(--font-portfolio-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
 };
 
-export default function UpworkThumbnailCanvas({ runId: _runId }: { runId: string | null }) {
+export default function MLOpsThumbnailCanvas({ runId: _runId }: { runId: string | null }) {
   return (
     <div
-      data-testid="portfolio-upwork-thumb-ready"
+      data-testid="portfolio-mlops-thumb-ready"
       data-ready="1"
       className="relative box-border h-[750px] w-[1000px] overflow-hidden rounded-[20px] border border-cyan-400/35 text-[#e2e8f0] shadow-[0_0_0_1px_rgba(34,211,238,0.25),0_0_60px_-8px_rgba(34,211,238,0.18),inset_0_1px_0_0_rgba(255,255,255,0.06)]"
       style={{ fontFamily: "var(--font-portfolio-sans), ui-sans-serif, system-ui, sans-serif" }}
     >
-      {/* Base + glow wash (Sentinel / DocuMind) */}
       <div
         className="absolute inset-0 bg-[#0a192f]"
         style={{
@@ -55,17 +61,16 @@ export default function UpworkThumbnailCanvas({ runId: _runId }: { runId: string
 
       <div className="relative flex h-full w-full flex-col pl-[3.5rem] pr-[3rem] pb-10 pt-[3.75rem]">
         <p className="text-[10.5px] font-bold uppercase leading-none tracking-[0.42em] text-cyan-400">
-          REFERENCE STACK
+          MLOPS REFERENCE
         </p>
 
         <h1 className="mt-[1.35rem] max-w-[58rem] text-[2.75rem] font-bold leading-[1.06] tracking-[-0.032em]">
           <span className="text-white">AutoFlow</span>
-          <span className="text-cyan-400"> — Multi-agent orchestrator</span>
+          <span className="text-cyan-400"> — LLM app platform</span>
         </h1>
 
         <p className="mt-[1.15rem] max-w-[56rem] text-[14.5px] font-normal leading-[1.6] text-[#94a3b8]">
-          Python · LangChain · LangGraph · Ollama · Postgres · Redis · FastAPI · WebSocket alerts · Next.js console ·
-          Docker
+          Serving · orchestration · run lineage · idempotent ingest · health probes · CI gates · operator console
         </p>
 
         <div className="mt-[2.35rem] grid w-[472px] shrink-0 grid-cols-2 gap-[17px]">

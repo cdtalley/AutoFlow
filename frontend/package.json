@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "screenshot:upwork": "node scripts/capture-upwork-dashboard.mjs"
+    "screenshot:upwork": "node scripts/capture-upwork-dashboard.mjs",
+    "screenshot:thumb": "node scripts/capture-upwork-thumbnail.mjs",
+    "screenshot:mlops": "node scripts/capture-mlops-thumbnail.mjs",
+    "video:upwork-demo": "node scripts/record-upwork-demo-video.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

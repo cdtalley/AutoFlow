@@ -2,7 +2,7 @@
 
 **Multi-agent inquiry automation** for inbound business traffic: classify intent, route to specialist behavior (FAQ, sales, support), draft or escalate with an auditable trail. Inference is **local-first** via [Ollama](https://ollama.com) (default model `llama3`); there is no dependency on hosted LLM APIs for core processing.
 
-This repository is structured as a **reference implementation** suitable for security review, architecture discussions, and extension into production: typed HTTP surface, explicit orchestration graph, split persistence (hot vs durable), operator UI, and documented operational gaps.
+This repository is structured as a **reference implementation** suitable for security review, architecture discussions, and extension into production: typed HTTP surface, explicit orchestration graph, split persistence (hot vs durable), operator UI, and documented operational gaps. For an MLOps-focused capability map and demo walkthrough, see [docs/MLOPS_PORTFOLIO.md](docs/MLOPS_PORTFOLIO.md).
 
 ---
 
@@ -342,7 +342,7 @@ Set `NEXT_PUBLIC_API_BASE` if the API is not on `http://localhost:8000` (see `fr
 **Load / demo scripts**
 
 - `python scripts/simulate_requests.py` — randomized webhook traffic.
-- `python scripts/seed_portfolio_screenshot.py` — deterministic seed for UI screenshots (see `docs/UPWORK_PORTFOLIO.md`).
+- `python scripts/seed_portfolio_screenshot.py` — deterministic seed for UI screenshots (see [docs/MLOPS_PORTFOLIO.md](docs/MLOPS_PORTFOLIO.md#screenshot-assets)).
 
 ---
 
@@ -377,11 +377,11 @@ Short list of upgrades that typically appear between “credible reference” an
 
 | Document | Contents |
 |----------|----------|
-| [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) | Operator handoff checklist |
-| [docs/UPWORK_PORTFOLIO.md](docs/UPWORK_PORTFOLIO.md) | Portfolio copy, pricing anchors, screenshot workflow |
+| [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) | Pre-production operator checklist |
+| [docs/MLOPS_PORTFOLIO.md](docs/MLOPS_PORTFOLIO.md) | MLOps capability map, architecture notes, demo walkthrough, screenshot assets |
 
 ---
 
 ## Contact
 
-Reference implementation for architecture and integration discussions. Inference remains **local** via Ollama unless you intentionally replace `OllamaClient` with another backend.
+Reference implementation for architecture and integration discussions. Inference remains **local** via Ollama unless `OllamaClient` is replaced with another backend.
