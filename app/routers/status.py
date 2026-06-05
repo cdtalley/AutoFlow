@@ -22,6 +22,10 @@ async def status(run_id: str, db: AsyncSession = Depends(get_db)):
         now = datetime.utcnow().isoformat()
         return RunStatus(
             run_id=run_id,
+            model_name=state.get("model_name", ""),
+            model_version=state.get("model_version", ""),
+            workflow_version=state.get("workflow_version", ""),
+            config_fingerprint=state.get("config_fingerprint", ""),
             status=state.get("status", "running"),
             intent=state.get("intent", ""),
             intent_confidence=float(state.get("intent_confidence", 0.0)),
@@ -42,6 +46,10 @@ async def status(run_id: str, db: AsyncSession = Depends(get_db)):
 
     return RunStatus(
         run_id=record.run_id,
+        model_name=record.model_name,
+        model_version=record.model_version,
+        workflow_version=record.workflow_version,
+        config_fingerprint=record.config_fingerprint,
         status=record.status,
         intent=record.intent,
         intent_confidence=float(record.intent_confidence),

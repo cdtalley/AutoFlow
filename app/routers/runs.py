@@ -36,6 +36,10 @@ async def run_detail(run_id: str, db: AsyncSession = Depends(get_db)):
 
     return RunStatus(
         run_id=r.run_id,
+        model_name=r.model_name,
+        model_version=r.model_version,
+        workflow_version=r.workflow_version,
+        config_fingerprint=r.config_fingerprint,
         status=r.status,
         intent=r.intent,
         intent_confidence=float(r.intent_confidence),

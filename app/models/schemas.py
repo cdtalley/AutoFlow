@@ -21,6 +21,10 @@ class WebhookResponse(BaseModel):
 
 class RunStatus(BaseModel):
     run_id: str
+    model_name: str = ""
+    model_version: str = ""
+    workflow_version: str = ""
+    config_fingerprint: str = ""
     status: str
     intent: str
     intent_confidence: float

@@ -8,6 +8,8 @@ class Settings(BaseSettings):
 
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     LLM_MODEL: str = "llama3"
+    MODEL_VERSION: str | None = None
+    WORKFLOW_VERSION: str = "v1"
     REDIS_URL: str = "redis://localhost:6379"
     DATABASE_URL: str = "postgresql+asyncpg://autoflow:autoflow@localhost:5433/autoflow"
     SYNC_DATABASE_URL: str = "postgresql://autoflow:autoflow@localhost:5433/autoflow"

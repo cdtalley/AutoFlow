@@ -27,6 +27,10 @@ from fastapi.testclient import TestClient
 def _stub_graph_invoke(state: dict[str, Any], config: dict | None = None) -> dict[str, Any]:
     """Minimal terminal state for ``save_run`` / Redis after a fake graph run."""
     out = dict(state)
+    out.setdefault("model_name", "llama3")
+    out.setdefault("model_version", "llama3")
+    out.setdefault("workflow_version", "v1")
+    out.setdefault("config_fingerprint", "test-fingerprint")
     out.setdefault("agent_steps", list(out.get("agent_steps") or []))
     out["status"] = "completed"
     out["intent"] = out.get("intent") or "faq"

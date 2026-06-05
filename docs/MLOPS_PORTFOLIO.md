@@ -28,6 +28,7 @@ AutoFlow accepts structured inquiries via a versioned webhook, runs a **LangGrap
 | **Serving / inference** | FastAPI async API; `graph.invoke` on a worker thread; `OLLAMA_BASE_URL` / `LLM_MODEL` | `app/services/graph_execution.py`, `app/utils/ollama_client.py` |
 | **Workflow orchestration** | LangGraph: classify → specialist → synthesize / handoff → audit | `app/agents/orchestrator.py` |
 | **State & lineage** | Per-run `run_id`; append-only `agent_steps`; intent and confidence stored | `app/db/models.py`, `app/services/graph_execution.py` |
+| **Release traceability** | Per-run `model_name`, `model_version`, `workflow_version`, `config_fingerprint` persisted in Redis + Postgres and surfaced via status APIs | `app/routers/webhook.py`, `app/db/models.py`, `app/models/schemas.py` |
 | **Hot vs cold storage** | Redis TTL snapshots and step streams; Postgres authoritative history | `app/memory/redis_memory.py`, `app/db/database.py` |
 | **Ingress reliability** | Per-IP rate limits; optional `Idempotency-Key`; structured 422/500 with `request_id` | `app/routers/webhook.py`, `app/limiter.py`, `app/errors.py` |
 | **Security at the boundary** | Optional webhook API key, admin key on DELETE, WebSocket token gate | `app/routers/auth_deps.py`, [README §10](../README.md#10-security-model) |
@@ -35,6 +36,7 @@ AutoFlow accepts structured inquiries via a versioned webhook, runs a **LangGrap
 | **Operator UX** | Live runs (poll + WebSocket), history, health dashboard | `frontend/` |
 | **Packaging** | Docker image and Compose (Postgres, Redis) | `Dockerfile`, `docker-compose.yml` |
 | **CI** | GitHub Actions with Postgres and Redis services; `pytest` with graph stub (no Ollama in CI) | `.github/workflows/ci.yml`, `tests/conftest.py` |
+| **Regression gates** | Route-mapping evaluation tests prevent silent orchestration regressions for intent routing and escalation paths | `tests/test_routing_eval.py` |
 | **Configuration** | `pydantic-settings`, `.env.example`, environment-specific CORS and error disclosure | `app/config.py` |
 
 ### Extension roadmap (not yet implemented)
@@ -89,6 +91,8 @@ flowchart LR
 - **Dual-tier state**: Redis for hot snapshots and idempotency; Postgres for durable history and operator queries.
 - **Ingress hardening**: rate limiting, idempotent webhooks, optional API keys, request IDs on error paths, production-gated 500 responses.
 - **CI pipeline** with Postgres and Redis service containers; fast tests via graph stubs without a live LLM in CI.
+- **Ownership metadata** stamped into every run: model/workflow versions plus config fingerprint for reproducibility and rollback forensics.
+- **Workflow regression gate** in tests to lock down deterministic routing behavior as code evolves.
 - **Operator console** (Next.js) for health, submission, live runs, and history.
 
 ---

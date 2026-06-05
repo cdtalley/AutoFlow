@@ -1,4 +1,6 @@
 from datetime import datetime
+import hashlib
+import json
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
@@ -18,6 +20,19 @@ from app.services.graph_execution import process_inquiry_run
 router = APIRouter()
 
 _WEBHOOK_RL = get_settings().WEBHOOK_RATE_LIMIT
+
+
+def _build_config_fingerprint() -> str:
+    settings = get_settings()
+    stable_config = {
+        "ollama_base_url": settings.OLLAMA_BASE_URL,
+        "llm_model": settings.LLM_MODEL,
+        "workflow_version": settings.WORKFLOW_VERSION,
+        "escalation_confidence_threshold": settings.ESCALATION_CONFIDENCE_THRESHOLD,
+        "max_agent_iterations": settings.MAX_AGENT_ITERATIONS,
+    }
+    payload = json.dumps(stable_config, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def _normalize_idempotency_key(raw: str | None) -> str | None:
@@ -64,6 +79,10 @@ async def webhook(
     now_iso = datetime.utcnow().isoformat() + "Z"
     initial_state = {
         "run_id": run_id,
+        "model_name": settings.LLM_MODEL,
+        "model_version": settings.MODEL_VERSION or settings.LLM_MODEL,
+        "workflow_version": settings.WORKFLOW_VERSION,
+        "config_fingerprint": _build_config_fingerprint(),
         "messages": [HumanMessage(content=raw_input)],
         "raw_input": raw_input,
         "sender_name": body.sender_name,

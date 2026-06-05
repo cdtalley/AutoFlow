@@ -13,6 +13,10 @@ class RunRecord(Base):
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     run_id: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
+    model_name: Mapped[str] = mapped_column(String(120), default="")
+    model_version: Mapped[str] = mapped_column(String(120), default="")
+    workflow_version: Mapped[str] = mapped_column(String(80), default="")
+    config_fingerprint: Mapped[str] = mapped_column(String(64), default="")
     status: Mapped[str] = mapped_column(String(20), default="running")
     intent: Mapped[str] = mapped_column(String(50), default="")
     intent_confidence: Mapped[float] = mapped_column(Float, default=0.0)

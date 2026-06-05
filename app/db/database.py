@@ -42,6 +42,10 @@ async def save_run(db: AsyncSession, state: AgentState, subject: str) -> None:
     existing = result.scalar_one_or_none()
 
     payload = {
+        "model_name": state.get("model_name", ""),
+        "model_version": state.get("model_version", ""),
+        "workflow_version": state.get("workflow_version", ""),
+        "config_fingerprint": state.get("config_fingerprint", ""),
         "status": state.get("status", "running"),
         "intent": state.get("intent", ""),
         "intent_confidence": float(state.get("intent_confidence", 0.0)),

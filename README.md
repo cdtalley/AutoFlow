@@ -289,6 +289,7 @@ All settings are **environment-driven** (`pydantic-settings`, optional `.env` fi
 | Variable | Role |
 |----------|------|
 | `OLLAMA_BASE_URL`, `LLM_MODEL` | Ollama endpoint and model id |
+| `MODEL_VERSION`, `WORKFLOW_VERSION` | Release labels persisted per run for rollback and audit traces |
 | `REDIS_URL` | Redis connection URI |
 | `DATABASE_URL` / `SYNC_DATABASE_URL` | Async and sync Postgres URLs |
 | `ESCALATION_CONFIDENCE_THRESHOLD`, `MAX_AGENT_ITERATIONS` | Graph behavior tuning |

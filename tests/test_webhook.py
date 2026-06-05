@@ -23,6 +23,27 @@ def test_webhook_returns_run_id(client):
     assert data["status"] == "running"
 
 
+def test_status_exposes_run_version_metadata(client):
+    payload = {
+        "sender_name": "Jane Doe",
+        "sender_email": "jane@example.com",
+        "subject": "Need pricing",
+        "body": "Please share pricing.",
+        "metadata": {},
+    }
+    create_resp = client.post("/api/v1/webhook", json=payload)
+    assert create_resp.status_code == 200
+    run_id = create_resp.json()["run_id"]
+
+    status_resp = client.get(f"/api/v1/status/{run_id}")
+    assert status_resp.status_code == 200
+    status = status_resp.json()
+    assert status["model_name"] != ""
+    assert status["model_version"] != ""
+    assert status["workflow_version"] != ""
+    assert status["config_fingerprint"] != ""
+
+
 def test_webhook_missing_email(client):
     payload = {
         "sender_name": "Jane Doe",

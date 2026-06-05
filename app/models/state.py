@@ -5,6 +5,10 @@ from langgraph.graph.message import add_messages
 
 class AgentState(TypedDict):
     run_id: str
+    model_name: str
+    model_version: str
+    workflow_version: str
+    config_fingerprint: str
     messages: Annotated[list, add_messages]
     raw_input: str
     sender_name: str
